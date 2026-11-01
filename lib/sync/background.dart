@@ -10,7 +10,7 @@ import 'package:kover/utils/logging.dart';
 import 'package:kover/utils/safe_platform.dart';
 import 'package:workmanager/workmanager.dart';
 
-const String _periodicTaskId = 'com.rodonisi.kover.periodic_task';
+const String _periodicTaskId = 'ru.kunini.kover.periodic_task';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {

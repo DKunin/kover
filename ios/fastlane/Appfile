@@ -1,4 +1,4 @@
-app_identifier 'com.rodonisi.kover'
+app_identifier 'ru.kunini.kover'
 
 # For more information about the Appfile, see:
 #     https://docs.fastlane.tools/advanced/#appfile

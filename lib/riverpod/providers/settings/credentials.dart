@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
 import 'package:kover/riverpod/providers/auth.dart';
 import 'package:kover/riverpod/repository/secure_storage.dart';
+import 'package:kover/utils/constants/kunini_server.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -34,7 +35,7 @@ class Credentials extends _$Credentials {
       options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
     ).future;
 
-    return state.value ?? const CredentialsState();
+    return state.value ?? const CredentialsState(url: defaultKavitaServerUrl);
   }
 
   Future<void> updateCredentials({
