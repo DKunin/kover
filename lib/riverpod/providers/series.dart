@@ -27,6 +27,8 @@ Future<List<SeriesModel>> filterSeries(
   String query, {
   int? libraryId,
   int? collectionId,
+  List<int> writerIds = const [],
+  List<int> genreIds = const [],
   UnorderedSortOption orderBy = .name,
   SortDirection direction = .ascending,
   bool hideRead = false,
@@ -38,6 +40,8 @@ Future<List<SeriesModel>> filterSeries(
     allSeriesProvider(
       libraryId: libraryId,
       collectionId: collectionId,
+      writerIds: writerIds,
+      genreIds: genreIds,
       orderBy: orderBy,
       direction: direction,
       hideRead: hideRead,
@@ -54,6 +58,8 @@ Future<List<SeriesModel>> filterSeries(
     query,
     libraryId: libraryId,
     collectionId: collectionId,
+    writerIds: writerIds,
+    genreIds: genreIds,
     orderBy: orderBy,
     direction: direction,
     hideRead: hideRead,
@@ -95,6 +101,8 @@ Stream<List<SeriesModel>> allSeries(
   Ref ref, {
   int? libraryId,
   int? collectionId,
+  List<int> writerIds = const [],
+  List<int> genreIds = const [],
   UnorderedSortOption orderBy = .name,
   SortDirection direction = .ascending,
   bool hideRead = false,
@@ -107,6 +115,8 @@ Stream<List<SeriesModel>> allSeries(
       .watchAllSeries(
         libraryId: libraryId,
         collectionId: collectionId,
+        writerIds: writerIds,
+        genreIds: genreIds,
         orderBy: orderBy,
         direction: direction,
         hideRead: hideRead,
@@ -114,6 +124,36 @@ Stream<List<SeriesModel>> allSeries(
         bookmarkedOnly: bookmarkedOnly,
       )
       .distinct();
+}
+
+@riverpod
+Stream<List<PersonModel>> seriesWriters(
+  Ref ref, {
+  int? libraryId,
+  int? collectionId,
+}) {
+  final repo = ref.watch(seriesRepositoryProvider);
+  return repo
+      .watchSeriesWriters(
+        libraryId: libraryId,
+        collectionId: collectionId,
+      )
+      .distinct(listEquals);
+}
+
+@riverpod
+Stream<List<GenreModel>> seriesGenres(
+  Ref ref, {
+  int? libraryId,
+  int? collectionId,
+}) {
+  final repo = ref.watch(seriesRepositoryProvider);
+  return repo
+      .watchSeriesGenres(
+        libraryId: libraryId,
+        collectionId: collectionId,
+      )
+      .distinct(listEquals);
 }
 
 @riverpod

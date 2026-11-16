@@ -9,6 +9,7 @@ sealed class UserModel with _$UserModel {
   const factory UserModel({
     required int id,
     required String username,
+    @Default(<String>[]) List<String> roles,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -18,6 +19,11 @@ sealed class UserModel with _$UserModel {
     return UserModel(
       id: dto.id!,
       username: dto.username!,
+      roles: dto.roles ?? const [],
     );
   }
+}
+
+extension UserModelPermissions on UserModel {
+  bool get isReadOnly => roles.contains('Read Only');
 }

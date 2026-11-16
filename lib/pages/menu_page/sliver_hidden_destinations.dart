@@ -20,8 +20,11 @@ class SliverHiddenDestinations extends ConsumerWidget {
         (state) => state.whenData(
           (state) => NavbarDestinations.values
               .where(
-                (destination) =>
-                    !state.navbarDestinations.contains(destination),
+                (destination) => !state.navbarDestinations.any(
+                  (item) =>
+                      item is NavbarDestinationItem &&
+                      item.destination == destination,
+                ),
               )
               .toSet(),
         ),

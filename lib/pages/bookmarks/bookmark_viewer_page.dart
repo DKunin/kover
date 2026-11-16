@@ -201,53 +201,46 @@ class _ViewerBody extends HookConsumerWidget {
         child: ReaderShortcuts(
           onNextPage: () => goTo(currentIndex() + 1),
           onPreviousPage: () => goTo(currentIndex() - 1),
-          child: Stack(
-            children: [
-              Listener(
-                onPointerDown: (_) => pointerCount.value++,
-                onPointerUp: (_) =>
-                    pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
-                onPointerCancel: (_) =>
-                    pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
-                child: PageView.builder(
-                  controller: controller,
-                  allowImplicitScrolling: true,
-                  pageSnapping: true,
-                  itemCount: items.length,
-                  physics: physics,
-                  onPageChanged: (index) => current.value = index,
-                  itemBuilder: (context, index) {
-                    final bookmark = items[index];
-                    return Async(
-                      asyncValue: ref.watch(bookmarkImageProvider(bookmark)),
-                      data: (image) => ZoomableHorizontalPageImage(
-                        key: ValueKey(bookmark.id),
-                        outerController: controller,
-                        onZoomChanged: (zoomed) {
-                          final next = {...zoomedIndexes.value};
-                          zoomed ? next.add(index) : next.remove(index);
-                          zoomedIndexes.value = next;
-                        },
-                        child: Image.memory(
-                          image.data,
-                          fit: BoxFit.contain,
-                          gaplessPlayback: true,
-                        ),
+          child: OverlayGestures(
+            seriesId: seriesId,
+            onLeftTap: () => goTo(currentIndex() - 1),
+            onRightTap: () => goTo(currentIndex() + 1),
+            onCenterTap: () => uiVisible.value = !uiVisible.value,
+            child: Listener(
+              onPointerDown: (_) => pointerCount.value++,
+              onPointerUp: (_) =>
+                  pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
+              onPointerCancel: (_) =>
+                  pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
+              child: PageView.builder(
+                controller: controller,
+                allowImplicitScrolling: true,
+                pageSnapping: true,
+                itemCount: items.length,
+                physics: physics,
+                onPageChanged: (index) => current.value = index,
+                itemBuilder: (context, index) {
+                  final bookmark = items[index];
+                  return Async(
+                    asyncValue: ref.watch(bookmarkImageProvider(bookmark)),
+                    data: (image) => ZoomableHorizontalPageImage(
+                      key: ValueKey(bookmark.id),
+                      outerController: controller,
+                      onZoomChanged: (zoomed) {
+                        final next = {...zoomedIndexes.value};
+                        zoomed ? next.add(index) : next.remove(index);
+                        zoomedIndexes.value = next;
+                      },
+                      child: Image.memory(
+                        image.data,
+                        fit: BoxFit.contain,
+                        gaplessPlayback: true,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-              Positioned.fill(
-                child: OverlayGestures(
-                  seriesId: seriesId,
-                  disableGestures: pointerCount.value >= 2,
-                  onLeftTap: () => goTo(currentIndex() - 1),
-                  onRightTap: () => goTo(currentIndex() + 1),
-                  onCenterTap: () => uiVisible.value = !uiVisible.value,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

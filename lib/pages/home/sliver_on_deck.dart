@@ -20,7 +20,7 @@ class SliverOnDeck extends ConsumerWidget {
       data: (data) {
         return OnDeckScope(
           child: HomeSection.series(
-            title: l.onDeck,
+            title: l.continueReading,
             items: data,
             onNavigate: () => const OnDeckRoute().push(context),
           ),

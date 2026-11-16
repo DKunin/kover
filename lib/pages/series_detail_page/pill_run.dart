@@ -8,11 +8,13 @@ import 'package:material_ui/material_ui.dart';
 class PeopleRun extends StatelessWidget {
   final String title;
   final List<PersonModel> items;
+  final ValueChanged<PersonModel>? onTap;
 
   const new({
     super.key,
     required this.title,
     required this.items,
+    this.onTap,
   });
 
   @override
@@ -20,13 +22,23 @@ class PeopleRun extends StatelessWidget {
     return PillRun(
       title: title,
       items: items
-          .map((p) => PillRunItem(label: p.name, icon: KoverIcons.person))
+          .map(
+            (p) => PillRunItem(
+              label: p.name,
+              icon: KoverIcons.person,
+              onTap: onTap == null ? null : () => onTap!(p),
+            ),
+          )
           .toList(),
     );
   }
 }
 
-class const PillRunItem({required final String label, final IconData? icon});
+class const PillRunItem({
+  required final String label,
+  final IconData? icon,
+  final VoidCallback? onTap,
+});
 
 class PillRun extends HookWidget {
   final String title;
@@ -55,7 +67,12 @@ class PillRun extends HookWidget {
       crossAxisAlignment: .start,
       spacing: LayoutConstants.smallPadding,
       children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         Wrap(
           spacing: LayoutConstants.smallPadding,
           runSpacing: LayoutConstants.smallPadding,
@@ -67,6 +84,7 @@ class PillRun extends HookWidget {
 
                 return Pill(
                   key: ValueKey('${item.label}-$index'),
+                  onTap: item.onTap,
                   child: Row(
                     mainAxisSize: .min,
                     spacing: LayoutConstants.smallPadding,
@@ -120,7 +138,7 @@ class Pill extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: LayoutConstants.mediumPadding,
+            horizontal: 12,
             vertical: LayoutConstants.smallerPadding,
           ),
           child: child,

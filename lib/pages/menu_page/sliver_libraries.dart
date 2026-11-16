@@ -1,4 +1,4 @@
-import 'package:kover/utils/constants/kover_icons.dart';
+import 'package:kover/utils/extensions/navbar_destination.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/library_model.dart';
@@ -51,12 +51,7 @@ class LibraryListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leading = Icon(switch (lib.type) {
-      .book || .lightNovel => KoverIcons.book,
-      .manga || .comic || .comicLegacy => KoverIcons.comic,
-      .image => KoverIcons.image,
-      _ => KoverIcons.unknownFormat,
-    });
+    final leading = Icon(lib.type.icon);
 
     return AppListTile(
       title: lib.name,

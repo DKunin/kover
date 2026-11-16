@@ -24,7 +24,7 @@ enum ShowSnackbar {
 }
 
 class ReaderOverlay extends HookConsumerWidget {
-  static const double snackbarOffset = 80.0;
+  static const double snackbarOffset = 72.0;
 
   final void Function()? onNextPage;
   final void Function()? onPreviousPage;
@@ -141,7 +141,17 @@ class ReaderOverlay extends HookConsumerWidget {
                     child: Column(
                       mainAxisSize: .min,
                       children: [
-                        Expanded(child: child),
+                        Expanded(
+                          child: OverlayGestures(
+                            seriesId: seriesId,
+                            disableGestures: disableGestures,
+                            onCenterTap: () =>
+                                uiVisible.value = !uiVisible.value,
+                            onLeftTap: onPreviousPage,
+                            onRightTap: onNextPage,
+                            child: child,
+                          ),
+                        ),
                         if (data.showProgressBar &&
                             data.reader.series.format == .epub)
                           SubpageProgress(
@@ -164,15 +174,6 @@ class ReaderOverlay extends HookConsumerWidget {
                               )
                               .fadeIn(duration: progressFadeDuration),
                       ],
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: OverlayGestures(
-                      seriesId: seriesId,
-                      disableGestures: disableGestures,
-                      onCenterTap: () => uiVisible.value = !uiVisible.value,
-                      onLeftTap: onPreviousPage,
-                      onRightTap: onNextPage,
                     ),
                   ),
                   Align(

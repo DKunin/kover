@@ -2,6 +2,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/pages/series_detail_page/pill_run.dart';
 import 'package:kover/riverpod/providers/metadata.dart';
+import 'package:kover/riverpod/providers/router.dart';
 import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/details/info_widgets.dart';
@@ -23,9 +24,15 @@ class MetadataWriters extends StatelessWidget {
       title: l.writers,
       items: metadata.writers
           .map(
-            (w) => Text(
-              w.name,
-              style: Theme.of(context).textTheme.labelMedium,
+            (w) => Pill(
+              onTap: () => AllSeriesRoute(
+                writerId: w.id,
+                writerName: w.name,
+              ).go(context),
+              child: Text(
+                w.name,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
             ),
           )
           .toList(),
@@ -48,9 +55,15 @@ class MetadataGenres extends StatelessWidget {
       title: l.genres,
       items: metadata.genres
           .map(
-            (g) => Text(
-              g.name,
-              style: Theme.of(context).textTheme.labelMedium,
+            (g) => Pill(
+              onTap: () => AllSeriesRoute(
+                genreId: g.id,
+                genreName: g.name,
+              ).go(context),
+              child: Text(
+                g.name,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
             ),
           )
           .toList(),
@@ -118,7 +131,15 @@ class SliverGenres extends ConsumerWidget {
         return PillRun(
           title: AppLocalizations.of(context).genres,
           items: metadata.genres
-              .map((g) => PillRunItem(label: g.name))
+              .map(
+                (g) => PillRunItem(
+                  label: g.name,
+                  onTap: () => AllSeriesRoute(
+                    genreId: g.id,
+                    genreName: g.name,
+                  ).go(context),
+                ),
+              )
               .toList(),
         );
       },
@@ -162,6 +183,10 @@ class SliverWriters extends ConsumerWidget {
         return PeopleRun(
           title: AppLocalizations.of(context).writers,
           items: metadata.writers,
+          onTap: (writer) => AllSeriesRoute(
+            writerId: writer.id,
+            writerName: writer.name,
+          ).go(context),
         );
       },
     );

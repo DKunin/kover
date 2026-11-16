@@ -9,6 +9,7 @@ import 'package:kover/database/dao/series_dao.dart';
 import 'package:kover/models/enums/age_rating.dart';
 import 'package:kover/models/enums/format.dart';
 import 'package:kover/models/enums/library_type.dart';
+import 'package:kover/models/enums/person_role.dart';
 import 'package:kover/models/enums/publication_status.dart';
 
 void main() {
@@ -41,6 +42,7 @@ void main() {
 
   Future<void> insertSeries(
     int id, {
+    int libraryId = 1,
     DateTime? lastSynced,
     DateTime? lastChapterAdded,
     DateTime? remoteLastRead,
@@ -51,7 +53,7 @@ void main() {
         .insert(
           SeriesCompanion(
             id: Value(id),
-            libraryId: const Value(1),
+            libraryId: Value(libraryId),
             name: Value('name$id'),
             format: const Value(Format.epub),
             created: Value(DateTime.now()),
@@ -67,6 +69,9 @@ void main() {
     int id, {
     required int seriesId,
     Format format = .epub,
+    String? title,
+    String? titleName,
+    String? isbn,
   }) async {
     await database
         .into(database.chapters)
@@ -75,6 +80,9 @@ void main() {
             id: Value(id),
             volumeId: 0,
             seriesId: seriesId,
+            title: Value.absentIfNull(title),
+            titleName: Value.absentIfNull(titleName),
+            isbn: Value.absentIfNull(isbn),
             format: format,
             minNumber: 0,
             maxNumber: 0,
@@ -138,6 +146,69 @@ void main() {
             lastModified: Value(DateTime.now()),
           ),
         );
+  }
+
+  Future<void> insertPerson(int id, String name) async {
+    await database
+        .into(database.people)
+        .insert(
+          PeopleCompanion.insert(id: Value(id), name: name),
+        );
+  }
+
+  Future<void> insertGenre(int id, String label) async {
+    await database
+        .into(database.genres)
+        .insert(
+          GenresCompanion.insert(id: Value(id), label: label),
+        );
+  }
+
+  Future<void> insertTag(int id, String label) async {
+    await database
+        .into(database.tags)
+        .insert(TagsCompanion.insert(id: Value(id), label: label));
+  }
+
+  Future<void> insertSeriesMetadata(
+    int id, {
+    required int seriesId,
+    List<int> writerIds = const [],
+    List<int> genreIds = const [],
+  }) async {
+    await database
+        .into(database.seriesMetadata)
+        .insert(
+          SeriesMetadataCompanion.insert(
+            id: Value(id),
+            seriesId: seriesId,
+            ageRating: AgeRating.unknown,
+            maxCount: 0,
+            totalCount: 0,
+            publicationStatus: PublicationStatus.unknown,
+          ),
+        );
+    for (final writerId in writerIds) {
+      await database
+          .into(database.seriesPeopleRoles)
+          .insert(
+            SeriesPeopleRolesCompanion.insert(
+              seriesMetadataId: id,
+              personId: writerId,
+              role: PersonRole.writer,
+            ),
+          );
+    }
+    for (final genreId in genreIds) {
+      await database
+          .into(database.seriesGenres)
+          .insert(
+            SeriesGenresCompanion.insert(
+              seriesMetadataId: id,
+              genreId: genreId,
+            ),
+          );
+    }
   }
 
   ChapterWithRelationsCompanion chapterWithProgress({
@@ -317,6 +388,172 @@ void main() {
           expect(result.map((s) => s.id).toSet(), equals({1}));
         },
       );
+    });
+
+    group('series metadata filters', () {
+      test('combines writer and genre facets with exact ids', () async {
+        await insertLibrary(1);
+        await insertSeries(1);
+        await insertSeries(2);
+        await insertSeries(3);
+        await insertSeries(4);
+        await insertPerson(10, 'Writer A');
+        await insertPerson(20, 'Writer B');
+        await insertPerson(30, 'Chapter Writer');
+        await insertGenre(100, 'Genre A');
+        await insertGenre(200, 'Genre B');
+        await insertGenre(300, 'Chapter Genre');
+        await insertTag(400, 'Chapter Tag');
+        await insertSeriesMetadata(
+          1000,
+          seriesId: 1,
+          writerIds: const [10],
+          genreIds: const [100],
+        );
+        await insertSeriesMetadata(
+          2000,
+          seriesId: 2,
+          writerIds: const [20],
+          genreIds: const [100],
+        );
+        await insertSeriesMetadata(
+          3000,
+          seriesId: 3,
+          writerIds: const [10],
+          genreIds: const [200],
+        );
+        await database
+            .into(database.seriesPeopleRoles)
+            .insert(
+              SeriesPeopleRolesCompanion.insert(
+                seriesMetadataId: 2000,
+                personId: 10,
+                role: PersonRole.coverArtist,
+              ),
+            );
+        await insertChapter(
+          40,
+          seriesId: 4,
+          title: 'Hidden Chapter Title',
+          isbn: '9781234567890',
+        );
+        await database
+            .into(database.chapterPeopleRoles)
+            .insert(
+              ChapterPeopleRolesCompanion.insert(
+                chapterId: 40,
+                personId: 30,
+                role: PersonRole.writer,
+              ),
+            );
+        await database
+            .into(database.chapterGenres)
+            .insert(
+              ChapterGenresCompanion.insert(chapterId: 40, genreId: 300),
+            );
+        await database
+            .into(database.chapterTags)
+            .insert(ChapterTagsCompanion.insert(chapterId: 40, tagId: 400));
+
+        final writerOnly = await database.seriesDao
+            .allSeries(writerIds: const [10])
+            .get();
+        final genreOnly = await database.seriesDao
+            .allSeries(genreIds: const [100])
+            .get();
+        final eitherWriter = await database.seriesDao
+            .allSeries(writerIds: const [10, 20])
+            .get();
+        final intersection = await database.seriesDao
+            .allSeries(
+              writerIds: const [10],
+              genreIds: const [100],
+            )
+            .get();
+        final textIntersection = await database.seriesDao.filterSeries(
+          'name1',
+          writerIds: const [10],
+          genreIds: const [100],
+        );
+        final chapterWriter = await database.seriesDao
+            .allSeries(writerIds: const [30])
+            .get();
+        final chapterGenre = await database.seriesDao
+            .allSeries(genreIds: const [300])
+            .get();
+        final chapterTitle = await database.seriesDao.filterSeries('hidden');
+        final chapterIsbn = await database.seriesDao.filterSeries('978123');
+        final chapterPerson = await database.seriesDao.filterSeries(
+          'chapter writer',
+        );
+        final chapterGenreSearch = await database.seriesDao.filterSeries(
+          'chapter genre',
+        );
+        final chapterTag = await database.seriesDao.filterSeries('chapter tag');
+
+        expect(writerOnly.map((item) => item.id).toSet(), {1, 3});
+        expect(genreOnly.map((item) => item.id).toSet(), {1, 2});
+        expect(eitherWriter.map((item) => item.id).toSet(), {1, 2, 3});
+        expect(intersection.map((item) => item.id).toSet(), {1});
+        expect(textIntersection.map((item) => item.id), [1]);
+        expect(chapterWriter.map((item) => item.id), [4]);
+        expect(chapterGenre.map((item) => item.id), [4]);
+        expect(chapterTitle.map((item) => item.id), [4]);
+        expect(chapterIsbn.map((item) => item.id), [4]);
+        expect(chapterPerson.map((item) => item.id), [4]);
+        expect(chapterGenreSearch.map((item) => item.id), [4]);
+        expect(chapterTag.map((item) => item.id), [4]);
+      });
+
+      test('scopes available writer and genre facets to the library', () async {
+        await insertLibrary(1);
+        await insertLibrary(2);
+        await insertSeries(1);
+        await insertSeries(2, libraryId: 2);
+        await insertPerson(10, 'Writer A');
+        await insertPerson(20, 'Writer B');
+        await insertPerson(30, 'Chapter Writer');
+        await insertGenre(100, 'Genre A');
+        await insertGenre(200, 'Genre B');
+        await insertGenre(300, 'Chapter Genre');
+        await insertSeriesMetadata(
+          1000,
+          seriesId: 1,
+          writerIds: const [10],
+          genreIds: const [100],
+        );
+        await insertSeriesMetadata(
+          2000,
+          seriesId: 2,
+          writerIds: const [20],
+          genreIds: const [200],
+        );
+        await insertChapter(10, seriesId: 1);
+        await database
+            .into(database.chapterPeopleRoles)
+            .insert(
+              ChapterPeopleRolesCompanion.insert(
+                chapterId: 10,
+                personId: 30,
+                role: PersonRole.writer,
+              ),
+            );
+        await database
+            .into(database.chapterGenres)
+            .insert(
+              ChapterGenresCompanion.insert(chapterId: 10, genreId: 300),
+            );
+
+        final writers = await database.seriesDao
+            .watchSeriesWriters(libraryId: 1)
+            .first;
+        final genres = await database.seriesDao
+            .watchSeriesGenres(libraryId: 1)
+            .first;
+
+        expect(writers.map((item) => item.id), [30, 10]);
+        expect(genres.map((item) => item.id), [300, 100]);
+      });
     });
 
     group('watchOnDeck downloadedOnly', () {

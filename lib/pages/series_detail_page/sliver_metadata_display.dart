@@ -48,7 +48,7 @@ class SliverMetadataDisplay extends ConsumerWidget {
       maxWidth: LayoutConstants.contentMaxWidth,
       sliver: SliverBreakpointBuilder(
         compactBuilder: (context) {
-          return [?sliverCarousels, const SliverSummary(), ...visibleSlivers];
+          return [const SliverSummary(), ?sliverCarousels, ...visibleSlivers];
         },
         expandedBuilder: (context) {
           return [

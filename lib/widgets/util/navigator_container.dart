@@ -10,14 +10,18 @@ import 'package:kover/riverpod/providers/settings/oneoffs.dart';
 import 'package:kover/riverpod/providers/theme.dart' hide Theme;
 import 'package:kover/utils/extensions/navbar_destination.dart';
 import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/utils/safe_platform.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/monitoring_opt_out_popup.dart';
 
 class NavigatorContainer extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
+  final Uri location;
 
-  const NavigatorContainer({super.key, required this.navigationShell});
+  const NavigatorContainer({
+    super.key,
+    required this.navigationShell,
+    required this.location,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,18 +51,29 @@ class NavigatorContainer extends ConsumerWidget {
     return Async(
       asyncValue: destinations,
       data: (destinations) {
-        final selectedIndex = _mapSelectedIndex(
+        final selectedIndex = mapNavigationSelectedIndex(
           shellIndex: navigationShell.currentIndex,
           destinations: destinations,
+          location: location,
         );
         void onDestinationSelected(int index) {
-          final shellIndex = index < destinations.length
-              ? destinations[index].value
-              : navigationShell.route.branches.length - 1;
-          navigationShell.goBranch(
-            shellIndex,
-            initialLocation: true,
-          );
+          if (index >= destinations.length) {
+            navigationShell.goBranch(
+              navigationShell.route.branches.length - 1,
+              initialLocation: true,
+            );
+            return;
+          }
+
+          switch (destinations[index]) {
+            case NavbarDestinationItem(:final destination):
+              navigationShell.goBranch(
+                destination.value,
+                initialLocation: true,
+              );
+            case NavbarLibraryItem(:final libraryId):
+              context.go('/library/$libraryId');
+          }
         }
 
         return BreakpointBuilder(
@@ -93,26 +108,33 @@ class NavigatorContainer extends ConsumerWidget {
       },
     );
   }
+}
 
-  static int _mapSelectedIndex({
-    required int shellIndex,
-    required List<NavbarDestinations> destinations,
-  }) {
-    final index = destinations.indexWhere((d) => d.value == shellIndex);
-
-    if (index < 0) {
-      return destinations.length;
-    }
-
-    return index;
+@visibleForTesting
+int mapNavigationSelectedIndex({
+  required int shellIndex,
+  required List<NavbarItem> destinations,
+  required Uri location,
+}) {
+  if (location.pathSegments case ['library', final id]) {
+    final libraryId = int.tryParse(id);
+    final libraryIndex = destinations.indexWhere(
+      (destination) => destination.libraryId == libraryId,
+    );
+    return libraryIndex < 0 ? destinations.length : libraryIndex;
   }
+
+  final index = destinations.indexWhere(
+    (destination) => destination.shellIndex == shellIndex,
+  );
+  return index < 0 ? destinations.length : index;
 }
 
 class _CompactNavigationShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
   final int selectedIndex;
   final void Function(int) onDestinationSelected;
-  final List<NavbarDestinations> destinations;
+  final List<NavbarItem> destinations;
 
   const new({
     required this.navigationShell,
@@ -127,56 +149,40 @@ class _CompactNavigationShell extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
 
     return Scaffold(
-      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(
-          left: LayoutConstants.mediumPadding,
-          right: LayoutConstants.mediumPadding,
-          bottom: LayoutConstants.mediumPadding,
-        ),
-        child: SafeArea(
-          bottom: !SafePlatform.isIOS, // iOS safe area is way too aggressive
-          child: MediaQuery.removePadding(
-            context: context,
-            removeBottom: true,
-            removeTop: true,
-            child: Async(
-              asyncValue: theme,
-              data: (theme) {
-                return Card(
-                  margin: EdgeInsets.zero,
-                  clipBehavior: .hardEdge,
-                  shape: RoundedRectangleBorder(
-                    side: theme.outlined
-                        ? BorderSide(
-                            color: Theme.of(context).colorScheme.outline,
-                            width: 2.0,
-                          )
-                        : BorderSide.none,
-                    borderRadius: BorderRadius.circular(24.0),
-                  ),
-                  child: NavigationBar(
-                    selectedIndex: selectedIndex,
-                    onDestinationSelected: onDestinationSelected,
-                    destinations: [
-                      ...destinations.map((destination) {
-                        return NavigationDestination(
-                          icon: Icon(destination.icon),
-                          label: destination.getLabel(l),
-                        );
-                      }),
-                      NavigationDestination(
-                        icon: const Icon(KoverIcons.library),
-                        label: l.menu,
-                      ),
-                    ],
-                  ),
-                );
-              },
+      bottomNavigationBar: Async(
+        asyncValue: theme,
+        data: (theme) {
+          final colorScheme = Theme.of(context).colorScheme;
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              border: theme.outlined
+                  ? Border(top: BorderSide(color: colorScheme.outline))
+                  : null,
             ),
-          ),
-        ),
+            child: SafeArea(
+              top: false,
+              child: NavigationBar(
+                backgroundColor: Colors.transparent,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onDestinationSelected,
+                destinations: [
+                  ...destinations.map((destination) {
+                    return NavigationDestination(
+                      icon: Icon(destination.icon),
+                      label: destination.getLabel(l),
+                    );
+                  }),
+                  NavigationDestination(
+                    icon: const Icon(KoverIcons.more),
+                    label: l.more,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -186,7 +192,7 @@ class _ExpandedNavigationLayout extends HookWidget {
   final StatefulNavigationShell navigationShell;
   final int selectedIndex;
   final void Function(int) onDestinationSelected;
-  final List<NavbarDestinations> destinations;
+  final List<NavbarItem> destinations;
   final bool startExtended;
 
   const new({
@@ -234,7 +240,7 @@ class _ExpandedNavigationLayout extends HookWidget {
                 );
               }),
               NavigationRailDestination(
-                icon: const Icon(KoverIcons.library),
+                icon: const Icon(KoverIcons.more),
                 label: Text(AppLocalizations.of(context).menu),
               ),
             ],

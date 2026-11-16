@@ -2,7 +2,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/dashboard_section_model.dart';
 import 'package:kover/pages/home/sliver_on_deck.dart';
 import 'package:kover/pages/home/sliver_recently_added.dart';
-import 'package:kover/pages/home/sliver_recently_updated.dart';
 import 'package:kover/pages/home/sliver_smart_filter_section.dart';
 import 'package:kover/riverpod/managers/sync_manager/sync_manager.dart';
 import 'package:kover/riverpod/providers/dashboard.dart';
@@ -38,6 +37,7 @@ class HomePageContent extends ConsumerWidget {
         clipBehavior: .none,
         slivers: [
           const ActionsAppBar(),
+          const SliverOnDeck(),
           SliverSafeArea(
             top: false,
             bottom: false,
@@ -49,8 +49,6 @@ class HomePageContent extends ConsumerWidget {
                   // has populated the database.
                   return const SliverMainAxisGroup(
                     slivers: [
-                      SliverOnDeck(),
-                      SliverRecentlyUpdated(),
                       SliverRecentlyAdded(),
                     ],
                   );
@@ -59,14 +57,14 @@ class HomePageContent extends ConsumerWidget {
                 return SliverMainAxisGroup(
                   slivers: data
                       .map(
-                        (section) => section.when(
-                          onDeck: () => const SliverOnDeck(),
-                          recentlyUpdated: () => const SliverRecentlyUpdated(),
-                          newlyAdded: () => const SliverRecentlyAdded(),
-                          smartFilter: (int id) =>
-                              SliverSmartFilterSection(smartFilterId: id),
+                        (section) => section.mapOrNull(
+                          newlyAdded: (_) => const SliverRecentlyAdded(),
+                          smartFilter: (section) => SliverSmartFilterSection(
+                            smartFilterId: section.id,
+                          ),
                         ),
                       )
+                      .nonNulls
                       .toList(),
                 );
               },

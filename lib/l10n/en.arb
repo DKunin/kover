@@ -36,6 +36,10 @@
     "@allSeries": {
         "description": "Label for the all series menu entry"
     },
+    "library": "Library",
+    "@library": {
+        "description": "Label for the complete series library"
+    },
     "collections": "Collections",
     "@collections": {
         "description": "Label for the collections menu entry"
@@ -629,6 +633,52 @@
     "@readerSettings": {
         "description": "Label for the reader settings bottom sheet title"
     },
+    "quickStyle": "Quick Style",
+    "@quickStyle": {
+        "description": "Heading for quick reader style presets"
+    },
+    "quickStyleSaveHint": "Long press a style to save the current settings",
+    "@quickStyleSaveHint": {
+        "description": "Hint explaining how to overwrite a quick reader style"
+    },
+    "quickStyleSaved": "{style} style updated",
+    "@quickStyleSaved": {
+        "description": "Confirmation after overwriting a quick reader style",
+        "placeholders": {
+            "style": {
+                "type": "String",
+                "example": "Book"
+            }
+        }
+    },
+    "bookStyle": "Book",
+    "@bookStyle": {
+        "description": "Label for the book reader style preset"
+    },
+    "comicStyle": "Comic",
+    "@comicStyle": {
+        "description": "Label for the comic reader style preset"
+    },
+    "bookStyleEpubDescription": "Sepia · comfortable",
+    "@bookStyleEpubDescription": {
+        "description": "Summary of the EPUB book style preset"
+    },
+    "comicStyleEpubDescription": "Vertical · edge to edge",
+    "@comicStyleEpubDescription": {
+        "description": "Summary of the EPUB comic style preset"
+    },
+    "bookStyleImageDescription": "Single page · contain",
+    "@bookStyleImageDescription": {
+        "description": "Summary of the image reader book style preset"
+    },
+    "comicStyleImageDescription": "Vertical · full width",
+    "@comicStyleImageDescription": {
+        "description": "Summary of the image reader comic style preset"
+    },
+    "fineTune": "Fine Tune",
+    "@fineTune": {
+        "description": "Heading before detailed reader settings"
+    },
     "readingDirection": "Reading Direction",
     "@readingDirection": {
         "description": "Label for the reading direction setting"
@@ -880,6 +930,18 @@
     "@reorderNavigationBar": {
         "description": "Label for the reorder navigation bar settings entry"
     },
+    "bottomBar": "Bottom Bar",
+    "@bottomBar": {
+        "description": "Title for bottom navigation customization"
+    },
+    "bottomBarDescription": "Choose shortcuts and drag to reorder. Libraries are available after they sync.",
+    "@bottomBarDescription": {
+        "description": "Instructions for bottom navigation customization"
+    },
+    "shownDestinations": "Shown",
+    "@shownDestinations": {
+        "description": "Heading for visible bottom navigation entries"
+    },
     "availableDestinations": "Available Destinations",
     "@availableDestinations": {
         "description": "Label for the available destinations section"
@@ -1047,5 +1109,160 @@
     "removeBookmark": "Remove bookmark",
     "@removeBookmark": {
         "description": "Tooltip for removing a bookmark"
+    },
+    "searchFor": "Search for \u201c{query}\u201d",
+    "@searchFor": {
+        "description": "Action that opens the complete catalog search for the entered query",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "people": "People",
+    "@people": {
+        "description": "Heading for people in global search results"
+    },
+    "files": "Files",
+    "@files": {
+        "description": "Heading for files in global search results"
+    },
+    "annotations": "Annotations",
+    "@annotations": {
+        "description": "Heading for annotations in global search results"
+    },
+    "noSearchResults": "No results found",
+    "@noSearchResults": {
+        "description": "Empty state shown when global search returns no results"
+    },
+    "searchResultUnavailable": "This result could not be opened",
+    "@searchResultUnavailable": {
+        "description": "Error shown when a chapter or file search result cannot be resolved"
+    },
+    "wantToFind": "Want To Find",
+    "@wantToFind": {
+        "description": "Title for metadata-only books the user wants to acquire"
+    },
+    "wantToFindAdd": "Add title",
+    "@wantToFindAdd": {
+        "description": "Action to add a metadata-only wanted title"
+    },
+    "wantToFindEmptyTitle": "Nothing to find yet",
+    "@wantToFindEmptyTitle": {
+        "description": "Empty-state title for Want To Find"
+    },
+    "wantToFindEmptyDescription": "Add metadata for books you want to acquire. These entries stay outside your libraries and collections.",
+    "@wantToFindEmptyDescription": {
+        "description": "Empty-state description for Want To Find"
+    },
+    "wantToFindMarkFound": "Mark found",
+    "@wantToFindMarkFound": {
+        "description": "Action to resolve a wanted title against a library series"
+    },
+    "wantToFindEdit": "Edit",
+    "@wantToFindEdit": {
+        "description": "Action to edit a wanted title"
+    },
+    "wantToFindOpenSource": "Open source",
+    "@wantToFindOpenSource": {
+        "description": "Action to open the source URL for a wanted title"
+    },
+    "wantToFindDelete": "Delete",
+    "@wantToFindDelete": {
+        "description": "Action to delete a wanted title"
+    },
+    "wantToFindDeleteConfirm": "Delete \u201c{title}\u201d from Want To Find?",
+    "@wantToFindDeleteConfirm": {
+        "description": "Confirmation before deleting a wanted title",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "wantToFindCreated": "Added to Want To Find",
+    "@wantToFindCreated": {
+        "description": "Confirmation after adding a wanted title"
+    },
+    "wantToFindUpdated": "Want To Find entry updated",
+    "@wantToFindUpdated": {
+        "description": "Confirmation after updating a wanted title"
+    },
+    "wantToFindDeleted": "Removed from Want To Find",
+    "@wantToFindDeleted": {
+        "description": "Confirmation after deleting a wanted title"
+    },
+    "wantToFindResolved": "Matched title removed from Want To Find",
+    "@wantToFindResolved": {
+        "description": "Confirmation after resolving a wanted title"
+    },
+    "wantToFindCreateTitle": "Add wanted title",
+    "@wantToFindCreateTitle": {
+        "description": "Heading for the wanted-title creation form"
+    },
+    "wantToFindEditTitle": "Edit wanted title",
+    "@wantToFindEditTitle": {
+        "description": "Heading for the wanted-title edit form"
+    },
+    "wantToFindTitleLabel": "Title",
+    "@wantToFindTitleLabel": {
+        "description": "Label for a wanted title's title field"
+    },
+    "wantToFindTitleRequired": "Title is required",
+    "@wantToFindTitleRequired": {
+        "description": "Validation error for a missing wanted title"
+    },
+    "wantToFindAuthorsLabel": "Authors",
+    "@wantToFindAuthorsLabel": {
+        "description": "Label for wanted-title authors"
+    },
+    "wantToFindIsbnLabel": "ISBN",
+    "@wantToFindIsbnLabel": {
+        "description": "Label for a wanted-title ISBN"
+    },
+    "wantToFindExternalIdLabel": "External ID",
+    "@wantToFindExternalIdLabel": {
+        "description": "Label for a wanted-title external identifier"
+    },
+    "wantToFindCoverUrlLabel": "Cover URL",
+    "@wantToFindCoverUrlLabel": {
+        "description": "Label for a wanted-title cover URL"
+    },
+    "wantToFindSourceUrlLabel": "Source URL",
+    "@wantToFindSourceUrlLabel": {
+        "description": "Label for a wanted-title source URL"
+    },
+    "wantToFindNotesLabel": "Notes",
+    "@wantToFindNotesLabel": {
+        "description": "Label for wanted-title notes"
+    },
+    "wantToFindResolveTitle": "Found {title}",
+    "@wantToFindResolveTitle": {
+        "description": "Heading for matching a wanted title to a library series",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "wantToFindResolveDescription": "Match this metadata-only entry to a series already in your library. The entry will then be removed from Want To Find.",
+    "@wantToFindResolveDescription": {
+        "description": "Explanation for resolving a wanted title"
+    },
+    "wantToFindMatchedSeriesLabel": "Library series",
+    "@wantToFindMatchedSeriesLabel": {
+        "description": "Label for the library-series matcher"
+    },
+    "wantToFindAddToWantToRead": "Add the matched series to Want To Read",
+    "@wantToFindAddToWantToRead": {
+        "description": "Option shown while resolving a wanted title"
+    },
+    "wantToFindInvalidUrl": "Use a valid HTTP or HTTPS URL",
+    "@wantToFindInvalidUrl": {
+        "description": "Validation error for a wanted-title URL"
+    },
+    "wantToFindFailure": "The Want To Find change could not be saved",
+    "@wantToFindFailure": {
+        "description": "Generic mutation error for Want To Find"
     }
 }

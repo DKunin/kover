@@ -19,7 +19,7 @@ class FilterInputField extends HookWidget {
       controller: controller,
       decoration: InputDecoration(
         hintText: l.filter,
-        prefixIcon: const Icon(KoverIcons.filter),
+        prefixIcon: const Icon(KoverIcons.search),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 onPressed: () {

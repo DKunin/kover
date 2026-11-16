@@ -2,6 +2,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/mapping/enums/read_direction.dart';
 import 'package:kover/pages/reader/image_reader/horizontal_spreads_reader_provider.dart';
+import 'package:kover/pages/reader/image_reader/zoomable_horizontal_page_image.dart';
 import 'package:kover/pages/reader/overlay/reader_overlay.dart';
 import 'package:kover/riverpod/providers/book.dart';
 import 'package:kover/riverpod/providers/reader/image_spreads_reader.dart';
@@ -153,6 +154,8 @@ class _ImageSpreadsReaderContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = usePageController(initialPage: initialSpread);
     final ready = useState(false);
+    final zoomedSpreadIndexes = useState(<int>{});
+    final pointerCount = useState(0);
     final navProvider = imageSpreadsReaderNavigationProvider(
       seriesId: seriesId,
       chapterId: chapterId,
@@ -192,12 +195,20 @@ class _ImageSpreadsReaderContent extends HookConsumerWidget {
     return Async(
       asyncValue: model,
       data: (data) {
+        final currentSpread = controller.hasClients
+            ? controller.page?.round() ?? initialSpread
+            : initialSpread;
+        final enabledScrollPhysics =
+            zoomedSpreadIndexes.value.contains(currentSpread) ||
+                pointerCount.value >= 2
+            ? const NeverScrollableScrollPhysics()
+            : const BouncingScrollPhysics();
         final scrollPhysics =
             data.commonSettings.navigationGersturesEnabled &&
                 !data.reduceAnimations
-            ? null
+            ? enabledScrollPhysics
             : const NeverScrollableScrollPhysics();
-        return Directionality(
+        final content = Directionality(
           textDirection: data.commonSettings.readDirection.toTextDirection(),
           child: PageView.builder(
             controller: controller,
@@ -212,56 +223,85 @@ class _ImageSpreadsReaderContent extends HookConsumerWidget {
             itemBuilder: (context, spreadIndex) {
               final spread = data.spreads.spreads[spreadIndex];
 
-              return Row(
-                textDirection: data.commonSettings.readDirection == .rightToLeft
-                    ? .rtl
-                    : .ltr,
-                children: spread
-                    .map<Widget>((page) {
-                      Alignment alignment;
+              return ZoomableHorizontalPageImage(
+                key: ValueKey(spreadIndex),
+                outerController: controller,
+                onZoomChanged: (zoomed) {
+                  if (zoomedSpreadIndexes.value.contains(spreadIndex) ==
+                      zoomed) {
+                    return;
+                  }
 
-                      if (spread.length == 1) {
-                        alignment = .center;
-                      } else if (data.commonSettings.readDirection ==
-                          .rightToLeft) {
-                        alignment = page == spread.first
-                            ? .centerLeft
-                            : .centerRight;
-                      } else {
-                        alignment = page == spread.first
-                            ? .centerRight
-                            : .centerLeft;
-                      }
+                  final nextZoomedSpreadIndexes = {
+                    ...zoomedSpreadIndexes.value,
+                  };
 
-                      final width =
-                          (MediaQuery.of(context).size.width *
-                                  MediaQuery.of(context).devicePixelRatio)
-                              .toInt();
+                  zoomed
+                      ? nextZoomedSpreadIndexes.add(spreadIndex)
+                      : nextZoomedSpreadIndexes.remove(spreadIndex);
+                  zoomedSpreadIndexes.value = nextZoomedSpreadIndexes;
+                },
+                child: Row(
+                  textDirection:
+                      data.commonSettings.readDirection == .rightToLeft
+                      ? .rtl
+                      : .ltr,
+                  children: spread
+                      .map<Widget>((page) {
+                        Alignment alignment;
 
-                      final imageCacheWidth = spread.length == 1
-                          ? width
-                          : width ~/ 2;
+                        if (spread.length == 1) {
+                          alignment = .center;
+                        } else if (data.commonSettings.readDirection ==
+                            .rightToLeft) {
+                          alignment = page == spread.first
+                              ? .centerLeft
+                              : .centerRight;
+                        } else {
+                          alignment = page == spread.first
+                              ? .centerRight
+                              : .centerLeft;
+                        }
 
-                      return Expanded(
-                        child: _RenderPage(
-                          chapterId: chapterId,
-                          seriesId: seriesId,
-                          readingListId: readingListId,
-                          page: page,
-                          alignment: alignment,
-                          imageCacheWidth: imageCacheWidth,
+                        final width =
+                            (MediaQuery.of(context).size.width *
+                                    MediaQuery.of(context).devicePixelRatio)
+                                .toInt();
+
+                        final imageCacheWidth = spread.length == 1
+                            ? width
+                            : width ~/ 2;
+
+                        return Expanded(
+                          child: _RenderPage(
+                            chapterId: chapterId,
+                            seriesId: seriesId,
+                            readingListId: readingListId,
+                            page: page,
+                            alignment: alignment,
+                            imageCacheWidth: imageCacheWidth,
+                          ),
+                        );
+                      })
+                      .interleave(
+                        SizedBox.square(
+                          dimension: data.settings.spreadReaderGap,
                         ),
-                      );
-                    })
-                    .interleave(
-                      SizedBox.square(
-                        dimension: data.settings.spreadReaderGap,
-                      ),
-                    )
-                    .toList(),
+                      )
+                      .toList(),
+                ),
               );
             },
           ),
+        );
+
+        return Listener(
+          onPointerDown: (_) => pointerCount.value++,
+          onPointerUp: (_) =>
+              pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
+          onPointerCancel: (_) =>
+              pointerCount.value = (pointerCount.value - 1).clamp(0, 10),
+          child: content,
         );
       },
     );

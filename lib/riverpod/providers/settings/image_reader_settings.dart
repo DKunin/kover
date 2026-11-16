@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/models/reading_style_preset.dart';
 import 'package:kover/riverpod/providers/breakpoints.dart';
 import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:kover/utils/logging.dart';
@@ -37,6 +38,8 @@ sealed class ImageReaderSettingsLimits {
 
 @freezed
 sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
+  const ImageReaderSettingsState._();
+
   const factory ImageReaderSettingsState({
     @Default(ImageScaleType.contain) ImageScaleType scaleType,
     @Default(ReaderMode.horizontal) ReaderMode readerMode,
@@ -53,6 +56,67 @@ sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
       _$ImageReaderSettingsStateFromJson(json);
 }
 
+extension ImageReaderSettingsPresets on ImageReaderSettingsState {
+  ImageReaderSettingsState applyPreset(ReadingStylePreset preset) {
+    return switch (preset) {
+      .book => copyWith(
+        scaleType: .contain,
+        readerMode: .horizontal,
+        hadSpread: false,
+        verticalReaderGap: 0,
+        verticalReaderPadding: 0,
+        spreadReaderGap: 0,
+        spreadCoverPage: true,
+        ignoreSafeAreas: false,
+        lockHorizontalPan: false,
+      ),
+      .comic => copyWith(
+        scaleType: .fitWidth,
+        readerMode: .vertical,
+        hadSpread: false,
+        verticalReaderGap: 0,
+        verticalReaderPadding: 0,
+        spreadReaderGap: 0,
+        spreadCoverPage: true,
+        ignoreSafeAreas: true,
+        lockHorizontalPan: true,
+      ),
+    };
+  }
+}
+
+@freezed
+sealed class ImageReadingStylePresetsState
+    with _$ImageReadingStylePresetsState {
+  const ImageReadingStylePresetsState._();
+
+  const factory ImageReadingStylePresetsState({
+    required ImageReaderSettingsState book,
+    required ImageReaderSettingsState comic,
+  }) = _ImageReadingStylePresetsState;
+
+  factory ImageReadingStylePresetsState.defaults() =>
+      ImageReadingStylePresetsState(
+        book: const ImageReaderSettingsState().applyPreset(.book),
+        comic: const ImageReaderSettingsState().applyPreset(.comic),
+      );
+
+  factory ImageReadingStylePresetsState.fromJson(Map<String, Object?> json) =>
+      _$ImageReadingStylePresetsStateFromJson(json);
+
+  ImageReaderSettingsState style(ReadingStylePreset preset) => switch (preset) {
+    .book => book,
+    .comic => comic,
+  };
+
+  ReadingStylePreset? matchingPreset(ImageReaderSettingsState settings) {
+    for (final preset in ReadingStylePreset.values) {
+      if (settings == style(preset)) return preset;
+    }
+    return null;
+  }
+}
+
 @riverpod
 @JsonPersist()
 class DefaultImageReaderSettings extends _$DefaultImageReaderSettings {
@@ -67,6 +131,32 @@ class DefaultImageReaderSettings extends _$DefaultImageReaderSettings {
 
   void setDefault(ImageReaderSettingsState newDefault) {
     state = AsyncData(newDefault);
+  }
+}
+
+@riverpod
+@JsonPersist()
+class ImageReadingStylePresets extends _$ImageReadingStylePresets {
+  @override
+  Future<ImageReadingStylePresetsState> build() async {
+    await persist(
+      ref.watch(storageProvider.future),
+      options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
+    ).future;
+    return state.value ?? ImageReadingStylePresetsState.defaults();
+  }
+
+  Future<void> save(
+    ReadingStylePreset preset,
+    ImageReaderSettingsState settings,
+  ) async {
+    final current = await future;
+    state = AsyncData(
+      switch (preset) {
+        .book => current.copyWith(book: settings),
+        .comic => current.copyWith(comic: settings),
+      },
+    );
   }
 }
 
@@ -112,6 +202,26 @@ class ImageReaderSettings extends _$ImageReaderSettings {
         'value': type,
         'reader': 'image',
       },
+    );
+  }
+
+  Future<void> applyReadingStyle(ReadingStylePreset preset) async {
+    final presets = await ref.read(imageReadingStylePresetsProvider.future);
+    state = AsyncData(presets.style(preset));
+    log.info(
+      'apply reading style preset',
+      attributes: {'value': preset.name, 'reader': 'image'},
+    );
+  }
+
+  Future<void> saveReadingStyle(ReadingStylePreset preset) async {
+    final current = await future;
+    await ref
+        .read(imageReadingStylePresetsProvider.notifier)
+        .save(preset, current);
+    log.info(
+      'save reading style preset',
+      attributes: {'value': preset.name, 'reader': 'image'},
     );
   }
 

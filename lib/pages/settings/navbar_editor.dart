@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
+import 'package:kover/models/library_model.dart';
+import 'package:kover/riverpod/providers/library.dart';
 import 'package:kover/riverpod/providers/settings/general_settings.dart';
 import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/utils/extensions/navbar_destination.dart';
@@ -17,7 +19,7 @@ class NavbarEditor extends StatelessWidget {
     final l = AppLocalizations.of(context);
 
     return BottomSheetOption(
-      title: l.reorderNavigationBar,
+      title: l.bottomBar,
       leadingIcon: KoverIcons.navbar,
       bottomSheetBuilder: (context) => const _NavbarEditorSheet(),
     );
@@ -35,15 +37,41 @@ class _NavbarEditorSheet extends ConsumerWidget {
         (state) => state.whenData((state) => state.navbarDestinations),
       ),
     );
+    final libraries =
+        ref.watch(librariesProvider).value ?? const <LibraryModel>[];
 
     return Async(
       asyncValue: navbar,
       data: (destinations) {
-        final hiddenEtries = NavbarDestinations.values
-            .where(
-              (destination) => !destinations.contains(destination),
-            )
-            .toList();
+        final hiddenEntries = <NavbarItem>[
+          ...NavbarDestinations.values
+              .where(
+                (destination) => !destinations.any(
+                  (item) =>
+                      item is NavbarDestinationItem &&
+                      item.destination == destination,
+                ),
+              )
+              .map(
+                (destination) => NavbarItem.destination(
+                  destination: destination,
+                ),
+              ),
+          ...libraries
+              .where(
+                (library) => !destinations.any(
+                  (item) =>
+                      item is NavbarLibraryItem && item.libraryId == library.id,
+                ),
+              )
+              .map(
+                (library) => NavbarItem.library(
+                  libraryId: library.id,
+                  name: library.name,
+                  type: library.type,
+                ),
+              ),
+        ];
         final canReorder = destinations.length > 1;
         return SingleChildScrollView(
           child: Column(
@@ -55,8 +83,23 @@ class _NavbarEditorSheet extends ConsumerWidget {
                   horizontal: LayoutConstants.mediumPadding,
                 ),
                 child: Text(
-                  l.reorderNavigationBar,
+                  l.bottomBar,
                   style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: LayoutConstants.mediumPadding,
+                ),
+                child: Text(l.bottomBarDescription),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: LayoutConstants.mediumPadding,
+                ),
+                child: Text(
+                  l.shownDestinations,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
               Card.filled(
@@ -88,10 +131,9 @@ class _NavbarEditorSheet extends ConsumerWidget {
                               ),
                               onPressed: canReorder
                                   ? () async {
-                                      final updatedList =
-                                          List<NavbarDestinations>.from(
-                                            destinations,
-                                          );
+                                      final updatedList = List<NavbarItem>.from(
+                                        destinations,
+                                      );
                                       updatedList.removeAt(index);
 
                                       await ref
@@ -109,7 +151,7 @@ class _NavbarEditorSheet extends ConsumerWidget {
                     );
                   },
                   onReorderItem: (oldIndex, newIndex) async {
-                    final updatedList = List<NavbarDestinations>.from(
+                    final updatedList = List<NavbarItem>.from(
                       destinations,
                     );
                     final item = updatedList.removeAt(oldIndex);
@@ -121,7 +163,7 @@ class _NavbarEditorSheet extends ConsumerWidget {
                   },
                 ),
               ),
-              if (hiddenEtries.isNotEmpty) ...[
+              if (hiddenEntries.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: LayoutConstants.mediumPadding,
@@ -137,7 +179,7 @@ class _NavbarEditorSheet extends ConsumerWidget {
                   ),
                   child: Column(
                     mainAxisSize: .min,
-                    children: hiddenEtries.map(
+                    children: hiddenEntries.map(
                       (destination) {
                         return _NavbarEntry(
                           destination: destination,
@@ -189,7 +231,7 @@ class _NavbarEditorSheet extends ConsumerWidget {
 }
 
 class _NavbarEntry extends StatelessWidget {
-  final NavbarDestinations destination;
+  final NavbarItem destination;
   final Widget? trailing;
 
   const _NavbarEntry({

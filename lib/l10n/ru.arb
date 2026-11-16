@@ -147,6 +147,7 @@
     "@allSeries": {
         "description": "Label for the all series menu entry"
     },
+    "library": "Библиотека",
     "dataManagement": "Управление данными",
     "@dataManagement": {
         "description": "Label for the data management section"
@@ -364,6 +365,18 @@
         "description": "Label for the saved headers section"
     },
     "reorderNavigationBar": "Порядок панели навигации",
+    "bottomBar": "Нижняя панель",
+    "@bottomBar": {
+        "description": "Title for bottom navigation customization"
+    },
+    "bottomBarDescription": "Выберите быстрые ссылки и перетащите их в нужном порядке. Библиотеки появятся после синхронизации.",
+    "@bottomBarDescription": {
+        "description": "Instructions for bottom navigation customization"
+    },
+    "shownDestinations": "На панели",
+    "@shownDestinations": {
+        "description": "Heading for visible bottom navigation entries"
+    },
     "@reorderNavigationBar": {
         "description": "Label for the reorder navigation bar settings entry"
     },
@@ -417,6 +430,52 @@
     "readerSettings": "Настройки чтения",
     "@readerSettings": {
         "description": "Label for the reader settings bottom sheet title"
+    },
+    "quickStyle": "Быстрый стиль",
+    "@quickStyle": {
+        "description": "Heading for quick reader style presets"
+    },
+    "quickStyleSaveHint": "Удерживайте стиль, чтобы сохранить текущие настройки",
+    "@quickStyleSaveHint": {
+        "description": "Hint explaining how to overwrite a quick reader style"
+    },
+    "quickStyleSaved": "Стиль «{style}» обновлён",
+    "@quickStyleSaved": {
+        "description": "Confirmation after overwriting a quick reader style",
+        "placeholders": {
+            "style": {
+                "type": "String",
+                "example": "Книга"
+            }
+        }
+    },
+    "bookStyle": "Книга",
+    "@bookStyle": {
+        "description": "Label for the book reader style preset"
+    },
+    "comicStyle": "Комикс",
+    "@comicStyle": {
+        "description": "Label for the comic reader style preset"
+    },
+    "bookStyleEpubDescription": "Сепия · удобно",
+    "@bookStyleEpubDescription": {
+        "description": "Summary of the EPUB book style preset"
+    },
+    "comicStyleEpubDescription": "Вертикально · без полей",
+    "@comicStyleEpubDescription": {
+        "description": "Summary of the EPUB comic style preset"
+    },
+    "bookStyleImageDescription": "Одна страница · целиком",
+    "@bookStyleImageDescription": {
+        "description": "Summary of the image reader book style preset"
+    },
+    "comicStyleImageDescription": "Вертикально · по ширине",
+    "@comicStyleImageDescription": {
+        "description": "Summary of the image reader comic style preset"
+    },
+    "fineTune": "Точная настройка",
+    "@fineTune": {
+        "description": "Heading before detailed reader settings"
     },
     "readingDirection": "Направление чтения",
     "@readingDirection": {
@@ -947,5 +1006,160 @@
     "lockHorizontalPan": "Заблокировать горизонтальную прокрутку",
     "@lockHorizontalPan": {
         "description": "Label for the lock horizontal panning setting in the vertical reader"
+    },
+    "searchFor": "Найти «{query}»",
+    "@searchFor": {
+        "description": "Action that opens the complete catalog search for the entered query",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "people": "Люди",
+    "@people": {
+        "description": "Heading for people in global search results"
+    },
+    "files": "Файлы",
+    "@files": {
+        "description": "Heading for files in global search results"
+    },
+    "annotations": "Аннотации",
+    "@annotations": {
+        "description": "Heading for annotations in global search results"
+    },
+    "noSearchResults": "Ничего не найдено",
+    "@noSearchResults": {
+        "description": "Empty state shown when global search returns no results"
+    },
+    "searchResultUnavailable": "Не удалось открыть этот результат",
+    "@searchResultUnavailable": {
+        "description": "Error shown when a chapter or file search result cannot be resolved"
+    },
+    "wantToFind": "Хочу найти",
+    "@wantToFind": {
+        "description": "Title for metadata-only books the user wants to acquire"
+    },
+    "wantToFindAdd": "Добавить книгу",
+    "@wantToFindAdd": {
+        "description": "Action to add a metadata-only wanted title"
+    },
+    "wantToFindEmptyTitle": "Пока нечего искать",
+    "@wantToFindEmptyTitle": {
+        "description": "Empty-state title for Want To Find"
+    },
+    "wantToFindEmptyDescription": "Добавьте метаданные книг, которые хотите найти. Эти записи не попадут в библиотеки и коллекции.",
+    "@wantToFindEmptyDescription": {
+        "description": "Empty-state description for Want To Find"
+    },
+    "wantToFindMarkFound": "Отметить найденной",
+    "@wantToFindMarkFound": {
+        "description": "Action to resolve a wanted title against a library series"
+    },
+    "wantToFindEdit": "Изменить",
+    "@wantToFindEdit": {
+        "description": "Action to edit a wanted title"
+    },
+    "wantToFindOpenSource": "Открыть источник",
+    "@wantToFindOpenSource": {
+        "description": "Action to open the source URL for a wanted title"
+    },
+    "wantToFindDelete": "Удалить",
+    "@wantToFindDelete": {
+        "description": "Action to delete a wanted title"
+    },
+    "wantToFindDeleteConfirm": "Удалить «{title}» из списка «Хочу найти»?",
+    "@wantToFindDeleteConfirm": {
+        "description": "Confirmation before deleting a wanted title",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "wantToFindCreated": "Добавлено в список «Хочу найти»",
+    "@wantToFindCreated": {
+        "description": "Confirmation after adding a wanted title"
+    },
+    "wantToFindUpdated": "Запись в списке «Хочу найти» обновлена",
+    "@wantToFindUpdated": {
+        "description": "Confirmation after updating a wanted title"
+    },
+    "wantToFindDeleted": "Удалено из списка «Хочу найти»",
+    "@wantToFindDeleted": {
+        "description": "Confirmation after deleting a wanted title"
+    },
+    "wantToFindResolved": "Найденная книга удалена из списка «Хочу найти»",
+    "@wantToFindResolved": {
+        "description": "Confirmation after resolving a wanted title"
+    },
+    "wantToFindCreateTitle": "Добавить книгу для поиска",
+    "@wantToFindCreateTitle": {
+        "description": "Heading for the wanted-title creation form"
+    },
+    "wantToFindEditTitle": "Изменить данные книги",
+    "@wantToFindEditTitle": {
+        "description": "Heading for the wanted-title edit form"
+    },
+    "wantToFindTitleLabel": "Название",
+    "@wantToFindTitleLabel": {
+        "description": "Label for a wanted title's title field"
+    },
+    "wantToFindTitleRequired": "Укажите название",
+    "@wantToFindTitleRequired": {
+        "description": "Validation error for a missing wanted title"
+    },
+    "wantToFindAuthorsLabel": "Авторы",
+    "@wantToFindAuthorsLabel": {
+        "description": "Label for wanted-title authors"
+    },
+    "wantToFindIsbnLabel": "ISBN",
+    "@wantToFindIsbnLabel": {
+        "description": "Label for a wanted-title ISBN"
+    },
+    "wantToFindExternalIdLabel": "Внешний идентификатор",
+    "@wantToFindExternalIdLabel": {
+        "description": "Label for a wanted-title external identifier"
+    },
+    "wantToFindCoverUrlLabel": "Ссылка на обложку",
+    "@wantToFindCoverUrlLabel": {
+        "description": "Label for a wanted-title cover URL"
+    },
+    "wantToFindSourceUrlLabel": "Ссылка на источник",
+    "@wantToFindSourceUrlLabel": {
+        "description": "Label for a wanted-title source URL"
+    },
+    "wantToFindNotesLabel": "Заметки",
+    "@wantToFindNotesLabel": {
+        "description": "Label for wanted-title notes"
+    },
+    "wantToFindResolveTitle": "Найдена книга «{title}»",
+    "@wantToFindResolveTitle": {
+        "description": "Heading for matching a wanted title to a library series",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "wantToFindResolveDescription": "Свяжите запись только с метаданными с произведением из библиотеки. После этого запись будет удалена из списка «Хочу найти».",
+    "@wantToFindResolveDescription": {
+        "description": "Explanation for resolving a wanted title"
+    },
+    "wantToFindMatchedSeriesLabel": "Произведение в библиотеке",
+    "@wantToFindMatchedSeriesLabel": {
+        "description": "Label for the library-series matcher"
+    },
+    "wantToFindAddToWantToRead": "Добавить найденное произведение в «Хочу прочитать»",
+    "@wantToFindAddToWantToRead": {
+        "description": "Option shown while resolving a wanted title"
+    },
+    "wantToFindInvalidUrl": "Укажите корректную ссылку HTTP или HTTPS",
+    "@wantToFindInvalidUrl": {
+        "description": "Validation error for a wanted-title URL"
+    },
+    "wantToFindFailure": "Не удалось сохранить изменение в списке «Хочу найти»",
+    "@wantToFindFailure": {
+        "description": "Generic mutation error for Want To Find"
     }
 }

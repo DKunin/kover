@@ -45,7 +45,9 @@ class DetailAppBar extends HookConsumerWidget {
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(4.0),
-        child: LinearProgressIndicator(value: progress),
+        child: progress == null
+            ? const SizedBox(height: 4)
+            : LinearProgressIndicator(value: progress),
       ),
       actions: actions,
       background: SeriesInfoBackground(
@@ -91,10 +93,10 @@ class _CompactLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: LayoutConstants.largePadding,
+        horizontal: LayoutConstants.mediumPadding,
       ),
       child: Column(
-        spacing: LayoutConstants.largePadding,
+        spacing: LayoutConstants.mediumPadding,
         crossAxisAlignment: .start,
         mainAxisAlignment: .start,
         mainAxisSize: .min,
@@ -102,13 +104,15 @@ class _CompactLayout extends StatelessWidget {
           const SizedBox.square(dimension: kToolbarHeight),
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           Row(
-            spacing: LayoutConstants.largePadding,
+            spacing: LayoutConstants.mediumPadding,
             children: [
               SizedBox(
-                height: 200,
+                height: 180,
                 child: ClipRRect(
                   borderRadius: BorderRadiusGeometry.circular(
                     LayoutConstants.smallBorderRadius,
@@ -286,64 +290,69 @@ class ContinuePointButton extends HookWidget {
         ),
         child: InkWell(
           onTap: enabled ? onTap : null,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              spacing: LayoutConstants.mediumPadding,
-              mainAxisAlignment: .center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadiusGeometry.circular(
-                    LayoutConstants.smallBorderRadius,
-                  ),
-                  child: SizedBox.square(
-                    dimension: LayoutConstants.largerIcon,
-                    child: cover,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(
+                  LayoutConstants.smallPadding,
                 ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: .center,
-                    crossAxisAlignment: .center,
-                    mainAxisSize: .min,
-                    children: [
+                child: Row(
+                  spacing: LayoutConstants.mediumPadding,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadiusGeometry.circular(
+                        LayoutConstants.smallerBorderRadius,
+                      ),
+                      child: SizedBox.square(
+                        dimension: 44,
+                        child: cover,
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            progress != null && progress! > 0
+                                ? l.continueReading
+                                : l.startReading,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (title != null)
+                            Text(
+                              title!,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: textColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (showProgress && progress != null)
                       Text(
-                        progress != null && progress! > 0
-                            ? l.continueReading
-                            : l.startReading,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        '${(progress! * 100).round()}%',
+                        style: theme.textTheme.labelLarge?.copyWith(
                           color: textColor,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (title != null)
-                        Text(
-                          title!,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: textColor,
-                          ),
-                          maxLines: 1,
-                          overflow: .ellipsis,
-                        ),
-                    ],
-                  ),
+                    Icon(
+                      KoverIcons.chevronRight,
+                      color: textColor,
+                    ),
+                  ],
                 ),
-                SizedBox.square(
-                  dimension: LayoutConstants.largerIcon,
-                  child: showProgress && progress != null
-                      ? Padding(
-                          padding: LayoutConstants.smallEdgeInsets,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 10,
-                            strokeCap: .round,
-                            backgroundColor: theme.colorScheme.onPrimaryFixed,
-                            color: theme.colorScheme.primaryFixedDim,
-                            value: progress,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
+              ),
+              if (showProgress && progress != null)
+                LinearProgressIndicator(value: progress),
+            ],
           ),
         ),
       ),

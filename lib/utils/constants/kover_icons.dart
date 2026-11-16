@@ -59,6 +59,7 @@ sealed class KoverIcons {
   static const IconData read = LucideIcons.bookOpen;
   static const IconData home = LucideIcons.home;
   static const IconData library = LucideIcons.library;
+  static const IconData more = LucideIcons.ellipsis;
   static const IconData navbar = LucideIcons.ellipsis;
   static const IconData header = LucideIcons.listPlus;
   static const IconData expandPanel = LucideIcons.panelLeftOpen;
@@ -108,6 +109,7 @@ sealed class KoverIcons {
 
   // Actions
   static const IconData wantToRead = LucideIcons.star;
+  static const IconData wantToFind = LucideIcons.bookSearch;
   static const IconData removeWantToRead = LucideIcons.starOff;
   static const IconData markRead = LucideIcons.bookCheck;
   static const IconData markUnread = LucideIcons.bookX;
@@ -121,6 +123,8 @@ sealed class KoverIcons {
   static const IconData remove = LucideIcons.x;
   static const IconData minus = LucideIcons.minus;
   static const IconData add = LucideIcons.plus;
+  static const IconData edit = LucideIcons.pencil;
+  static const IconData externalLink = LucideIcons.externalLink;
   static const IconData save = LucideIcons.save;
   static const IconData reset = LucideIcons.rotateCcw;
   static const IconData retry = LucideIcons.rotateCcw;

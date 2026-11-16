@@ -15,6 +15,7 @@ import 'package:kover/widgets/settings/reader/navigation_gestures_option.dart';
 import 'package:kover/widgets/settings/reader/orientation_option.dart';
 import 'package:kover/widgets/settings/reader/progress_bar_option.dart';
 import 'package:kover/widgets/settings/reader/read_direction_option.dart';
+import 'package:kover/widgets/settings/reader/reading_style_presets.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -28,6 +29,7 @@ class EpubReaderSettingsBottomSheet extends ConsumerWidget {
     final epubSettings = epubReaderSettingsProvider(seriesId: seriesId);
     final commonSettings = commonReaderSettingsProvider(seriesId: seriesId);
     final breakpoint = ref.watch(breakpointsProvider);
+    final stylePresets = ref.watch(epubReadingStylePresetsProvider).value;
 
     return Async(
       asyncValue: ref.watch(epubSettings),
@@ -51,6 +53,21 @@ class EpubReaderSettingsBottomSheet extends ConsumerWidget {
                       Text(
                         l.readerSettings,
                         style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      ReadingStylePresets(
+                        selected: stylePresets?.matchingPreset(settings),
+                        bookDescription: l.bookStyleEpubDescription,
+                        comicDescription: l.comicStyleEpubDescription,
+                        onSelected: (preset) => ref
+                            .read(epubSettings.notifier)
+                            .applyReadingStyle(preset),
+                        onSaved: (preset) => ref
+                            .read(epubSettings.notifier)
+                            .saveReadingStyle(preset),
+                      ),
+                      Text(
+                        l.fineTune,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                       ThemePicker(seriesId: seriesId),
                       ReadDirectionOption(seriesId: seriesId),

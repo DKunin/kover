@@ -44,10 +44,12 @@ class PageSlider extends ConsumerWidget {
           }, [currentPage]);
 
           return Row(
-            mainAxisAlignment: .spaceEvenly,
             children: [
-              const SizedBox.square(dimension: LayoutConstants.mediumPadding),
-              Text('${navState.currentPage + 1}'),
+              const SizedBox(width: LayoutConstants.smallPadding),
+              Text(
+                '${currentPage + 1} / ${navState.totalPages}',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
               Expanded(
                 child: Slider(
                   value: sliderValue.value,
@@ -65,8 +67,6 @@ class PageSlider extends ConsumerWidget {
                   },
                 ),
               ),
-              Text('${navState.totalPages}'),
-              const SizedBox.square(dimension: LayoutConstants.mediumPadding),
             ],
           );
         },

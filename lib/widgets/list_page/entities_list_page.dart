@@ -12,10 +12,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 class EntitiesListPage<T> extends HookWidget {
   final String title;
   final Widget? sortMenu;
+  final Widget? filterControls;
   final TextEditingController filterController;
   final AsyncValue<List<T>> items;
   final Widget Function(BuildContext context, T item) gridBuilder;
   final Widget Function(BuildContext context, T item) listBuilder;
+  final int compactGridCrossAxisCount;
 
   const new({
     super.key,
@@ -24,7 +26,9 @@ class EntitiesListPage<T> extends HookWidget {
     required this.items,
     required this.gridBuilder,
     required this.listBuilder,
+    this.compactGridCrossAxisCount = 3,
     this.sortMenu,
+    this.filterControls,
   });
 
   @override
@@ -33,6 +37,7 @@ class EntitiesListPage<T> extends HookWidget {
       title: title,
       filterController: filterController,
       sortMenu: sortMenu,
+      filterControls: filterControls,
       sliver: AsyncSliver(
         asyncValue: items,
         data: (data) {
@@ -40,6 +45,7 @@ class EntitiesListPage<T> extends HookWidget {
             items: data,
             gridBuilder: gridBuilder,
             listBuilder: listBuilder,
+            compactGridCrossAxisCount: compactGridCrossAxisCount,
           );
         },
       ),
@@ -50,6 +56,7 @@ class EntitiesListPage<T> extends HookWidget {
 class _EntitiesListPage extends HookWidget {
   final String title;
   final Widget? sortMenu;
+  final Widget? filterControls;
   final TextEditingController filterController;
   final Widget sliver;
 
@@ -58,6 +65,7 @@ class _EntitiesListPage extends HookWidget {
     required this.filterController,
     required this.sliver,
     this.sortMenu,
+    this.filterControls,
   });
 
   @override
@@ -92,7 +100,18 @@ class _EntitiesListPage extends HookWidget {
                   horizontal: LayoutConstants.mediumPadding,
                 ),
                 sliver: SliverToBoxAdapter(
-                  child: FilterInputField(controller: filterController),
+                  child: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      FilterInputField(controller: filterController),
+                      if (filterControls != null) ...[
+                        const SizedBox(
+                          height: LayoutConstants.smallPadding,
+                        ),
+                        filterControls!,
+                      ],
+                    ],
+                  ),
                 ),
               ),
               EntitiesPageScope(isGrid: isGrid.value, child: sliver),
@@ -109,11 +128,13 @@ class _SliverEntitiesListBody<T> extends StatelessWidget {
   final List<T> items;
   final Widget Function(BuildContext context, T item) gridBuilder;
   final Widget Function(BuildContext context, T item) listBuilder;
+  final int compactGridCrossAxisCount;
   const new({
     super.key,
     required this.items,
     required this.gridBuilder,
     required this.listBuilder,
+    required this.compactGridCrossAxisCount,
   });
 
   @override
@@ -126,6 +147,7 @@ class _SliverEntitiesListBody<T> extends StatelessWidget {
         sliver: AdaptiveSliverGrid(
           builder: (context, index) => gridBuilder(context, items[index]),
           itemCount: items.length,
+          compactCrossAxisCount: compactGridCrossAxisCount,
         ),
       );
     }
