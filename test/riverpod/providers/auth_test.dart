@@ -95,6 +95,7 @@ void main() {
         final userDto = const UserDto(
           id: 0,
           username: 'test_user',
+          roles: ['Read Only'],
         );
 
         when(
@@ -111,6 +112,7 @@ void main() {
           user,
           completion(equals(UserModel.fromUserDto(userDto))),
         );
+        expect(UserModel.fromUserDto(userDto).isReadOnly, isTrue);
         async.flushMicrotasks();
       });
     });

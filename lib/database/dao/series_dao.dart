@@ -17,6 +17,7 @@ import 'package:kover/database/tables/want_to_read.dart';
 import 'package:kover/mapping/enums/sort_direction.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/person_role.dart';
 import 'package:kover/utils/chunked_operation.dart';
 import 'package:kover/utils/data_constants.dart';
 import 'package:rxdart/rxdart.dart';
@@ -154,17 +155,96 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
             ..where(db.seriesTags.tagId.isInQuery(_matchingTagIds(token))),
         );
 
+    final chapterMetadataMatch =
+        chapters.id.isInQuery(
+          selectOnly(chapterPeopleRoles)
+            ..addColumns([chapterPeopleRoles.chapterId])
+            ..where(
+              chapterPeopleRoles.personId.isInQuery(
+                _matchingPersonIds(token),
+              ),
+            ),
+        ) |
+        chapters.id.isInQuery(
+          selectOnly(chapterGenres)
+            ..addColumns([chapterGenres.chapterId])
+            ..where(chapterGenres.genreId.isInQuery(_matchingGenreIds(token))),
+        ) |
+        chapters.id.isInQuery(
+          selectOnly(chapterTags)
+            ..addColumns([chapterTags.chapterId])
+            ..where(chapterTags.tagId.isInQuery(_matchingTagIds(token))),
+        );
+
+    final matchingChapterSeriesIds = selectOnly(chapters)
+      ..addColumns([chapters.seriesId])
+      ..where(
+        containsAny(token, [
+              chapters.title,
+              chapters.titleName,
+              chapters.isbn,
+            ]) |
+            chapterMetadataMatch,
+      );
+
     return containsAny(token, _titleColumns) |
         series.id.isInQuery(
           selectOnly(db.seriesMetadata)
             ..addColumns([db.seriesMetadata.seriesId])
             ..where(metadataMatch),
-        );
+        ) |
+        series.id.isInQuery(matchingChapterSeriesIds);
   }
 
   /// Match series title or metadata columns across all tokens in [query].
   Expression<bool> matchesSeriesQuery(String query) =>
       matchesAllTokens(query, matchesSeriesToken);
+
+  Expression<bool> _hasAnyWriter(List<int> writerIds) {
+    final seriesMetadataIds = selectOnly(db.seriesPeopleRoles)
+      ..addColumns([db.seriesPeopleRoles.seriesMetadataId])
+      ..where(
+        db.seriesPeopleRoles.personId.isIn(writerIds) &
+            db.seriesPeopleRoles.role.equalsValue(PersonRole.writer),
+      );
+    final chapterIds = selectOnly(chapterPeopleRoles)
+      ..addColumns([chapterPeopleRoles.chapterId])
+      ..where(
+        chapterPeopleRoles.personId.isIn(writerIds) &
+            chapterPeopleRoles.role.equalsValue(PersonRole.writer),
+      );
+
+    return series.id.isInQuery(
+          selectOnly(db.seriesMetadata)
+            ..addColumns([db.seriesMetadata.seriesId])
+            ..where(db.seriesMetadata.id.isInQuery(seriesMetadataIds)),
+        ) |
+        series.id.isInQuery(
+          selectOnly(chapters)
+            ..addColumns([chapters.seriesId])
+            ..where(chapters.id.isInQuery(chapterIds)),
+        );
+  }
+
+  Expression<bool> _hasAnyGenre(List<int> genreIds) {
+    final seriesMetadataIds = selectOnly(db.seriesGenres)
+      ..addColumns([db.seriesGenres.seriesMetadataId])
+      ..where(db.seriesGenres.genreId.isIn(genreIds));
+    final chapterIds = selectOnly(chapterGenres)
+      ..addColumns([chapterGenres.chapterId])
+      ..where(chapterGenres.genreId.isIn(genreIds));
+
+    return series.id.isInQuery(
+          selectOnly(db.seriesMetadata)
+            ..addColumns([db.seriesMetadata.seriesId])
+            ..where(db.seriesMetadata.id.isInQuery(seriesMetadataIds)),
+        ) |
+        series.id.isInQuery(
+          selectOnly(chapters)
+            ..addColumns([chapters.seriesId])
+            ..where(chapters.id.isInQuery(chapterIds)),
+        );
+  }
 
   /// Get series by [seriesId]
   Future<SeriesData> getSeries(int seriesId) async {
@@ -204,6 +284,8 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     String query, {
     int? libraryId,
     int? collectionId,
+    List<int> writerIds = const [],
+    List<int> genreIds = const [],
     UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
     bool hideRead = false,
@@ -233,6 +315,14 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
             ..where(db.collectionSeries.collectionId.equals(collectionId)),
         ),
       );
+    }
+
+    if (writerIds.isNotEmpty) {
+      q.where(_hasAnyWriter(writerIds));
+    }
+
+    if (genreIds.isNotEmpty) {
+      q.where(_hasAnyGenre(genreIds));
     }
 
     if (downloadedOnly) {
@@ -340,6 +430,8 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   MultiSelectable<SeriesData> allSeries({
     int? libraryId,
     int? collectionId,
+    List<int> writerIds = const [],
+    List<int> genreIds = const [],
     UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
     bool hideRead = false,
@@ -367,6 +459,14 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       );
     }
 
+    if (writerIds.isNotEmpty) {
+      query.where(_hasAnyWriter(writerIds));
+    }
+
+    if (genreIds.isNotEmpty) {
+      query.where(_hasAnyGenre(genreIds));
+    }
+
     if (downloadedOnly) {
       query.where(_hasDownloads);
     }
@@ -385,6 +485,143 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       );
 
     return query.map((row) => row.readTable(series));
+  }
+
+  Stream<List<PeopleData>> watchSeriesWriters({
+    int? libraryId,
+    int? collectionId,
+  }) {
+    final seriesQuery = select(people).join([
+      innerJoin(
+        db.seriesPeopleRoles,
+        db.seriesPeopleRoles.personId.equalsExp(people.id),
+      ),
+      innerJoin(
+        db.seriesMetadata,
+        db.seriesMetadata.id.equalsExp(
+          db.seriesPeopleRoles.seriesMetadataId,
+        ),
+      ),
+      innerJoin(series, series.id.equalsExp(db.seriesMetadata.seriesId)),
+    ])..where(db.seriesPeopleRoles.role.equalsValue(PersonRole.writer));
+
+    final chapterQuery = select(people).join([
+      innerJoin(
+        chapterPeopleRoles,
+        chapterPeopleRoles.personId.equalsExp(people.id),
+      ),
+      innerJoin(
+        chapters,
+        chapters.id.equalsExp(chapterPeopleRoles.chapterId),
+      ),
+      innerJoin(series, series.id.equalsExp(chapters.seriesId)),
+    ])..where(chapterPeopleRoles.role.equalsValue(PersonRole.writer));
+
+    if (libraryId != null) {
+      seriesQuery.where(series.libraryId.equals(libraryId));
+      chapterQuery.where(series.libraryId.equals(libraryId));
+    }
+
+    if (collectionId != null) {
+      final seriesIds = selectOnly(db.collectionSeries)
+        ..addColumns([db.collectionSeries.seriesId])
+        ..where(db.collectionSeries.collectionId.equals(collectionId));
+      final chapterSeriesIds = selectOnly(db.collectionSeries)
+        ..addColumns([db.collectionSeries.seriesId])
+        ..where(db.collectionSeries.collectionId.equals(collectionId));
+      seriesQuery.where(series.id.isInQuery(seriesIds));
+      chapterQuery.where(
+        series.id.isInQuery(chapterSeriesIds),
+      );
+    }
+
+    seriesQuery
+      ..groupBy([people.id])
+      ..orderBy([OrderingTerm.asc(people.name)]);
+    chapterQuery
+      ..groupBy([people.id])
+      ..orderBy([OrderingTerm.asc(people.name)]);
+
+    return Rx.combineLatest2(
+      seriesQuery.watch(),
+      chapterQuery.watch(),
+      (seriesRows, chapterRows) {
+        final peopleById = <int, PeopleData>{};
+        for (final row in [...seriesRows, ...chapterRows]) {
+          final person = row.readTable(people);
+          peopleById[person.id] = person;
+        }
+        final result = peopleById.values.toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
+        return result;
+      },
+    );
+  }
+
+  Stream<List<Genre>> watchSeriesGenres({
+    int? libraryId,
+    int? collectionId,
+  }) {
+    final seriesQuery = select(genres).join([
+      innerJoin(
+        db.seriesGenres,
+        db.seriesGenres.genreId.equalsExp(genres.id),
+      ),
+      innerJoin(
+        db.seriesMetadata,
+        db.seriesMetadata.id.equalsExp(db.seriesGenres.seriesMetadataId),
+      ),
+      innerJoin(series, series.id.equalsExp(db.seriesMetadata.seriesId)),
+    ]);
+
+    final chapterQuery = select(genres).join([
+      innerJoin(
+        chapterGenres,
+        chapterGenres.genreId.equalsExp(genres.id),
+      ),
+      innerJoin(chapters, chapters.id.equalsExp(chapterGenres.chapterId)),
+      innerJoin(series, series.id.equalsExp(chapters.seriesId)),
+    ]);
+
+    if (libraryId != null) {
+      seriesQuery.where(series.libraryId.equals(libraryId));
+      chapterQuery.where(series.libraryId.equals(libraryId));
+    }
+
+    if (collectionId != null) {
+      final seriesIds = selectOnly(db.collectionSeries)
+        ..addColumns([db.collectionSeries.seriesId])
+        ..where(db.collectionSeries.collectionId.equals(collectionId));
+      final chapterSeriesIds = selectOnly(db.collectionSeries)
+        ..addColumns([db.collectionSeries.seriesId])
+        ..where(db.collectionSeries.collectionId.equals(collectionId));
+      seriesQuery.where(series.id.isInQuery(seriesIds));
+      chapterQuery.where(
+        series.id.isInQuery(chapterSeriesIds),
+      );
+    }
+
+    seriesQuery
+      ..groupBy([genres.id])
+      ..orderBy([OrderingTerm.asc(genres.label)]);
+    chapterQuery
+      ..groupBy([genres.id])
+      ..orderBy([OrderingTerm.asc(genres.label)]);
+
+    return Rx.combineLatest2(
+      seriesQuery.watch(),
+      chapterQuery.watch(),
+      (seriesRows, chapterRows) {
+        final genresById = <int, Genre>{};
+        for (final row in [...seriesRows, ...chapterRows]) {
+          final genre = row.readTable(genres);
+          genresById[genre.id] = genre;
+        }
+        final result = genresById.values.toList()
+          ..sort((a, b) => a.label.compareTo(b.label));
+        return result;
+      },
+    );
   }
 
   /// Get all chapters for series [seriesId]

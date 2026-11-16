@@ -13,6 +13,7 @@ class const EpubHorizontalSubpages({
   required final int? readingListId,
   required final int page,
   required final CachedImageFactory imageCache,
+  final bool interactionLocked = false,
 }) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +46,10 @@ class const EpubHorizontalSubpages({
         : data.reflow.subpages.length;
     final spreadCount = (count + 1) ~/ 2;
 
-    final canScroll = data.navigationGesturesEnabled && !data.reduceAnimations;
+    final canScroll =
+        data.navigationGesturesEnabled &&
+        !data.reduceAnimations &&
+        !interactionLocked;
     final scrollPhysics = canScroll
         ? const AlwaysScrollableScrollPhysics(
             parent: ClampingScrollPhysics(),

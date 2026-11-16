@@ -10,6 +10,7 @@ class AdaptiveSliverGrid extends ConsumerWidget {
   final double childAspectRatio;
   final double mainAxisSpacing;
   final double crossAxisSpacing;
+  final int compactCrossAxisCount;
   final NullableIndexedWidgetBuilder builder;
   final void Function(int crossAxisCount)? onCrossAxisCountChanged;
 
@@ -21,6 +22,7 @@ class AdaptiveSliverGrid extends ConsumerWidget {
     this.childAspectRatio = LayoutConstants.chapterCardAspectRatio,
     this.mainAxisSpacing = 0,
     this.crossAxisSpacing = 0,
+    this.compactCrossAxisCount = 3,
     this.onCrossAxisCountChanged,
   });
 
@@ -35,7 +37,7 @@ class AdaptiveSliverGrid extends ConsumerWidget {
           Breakpoint.large => 8,
           Breakpoint.expanded => 6,
           Breakpoint.medium => 4,
-          Breakpoint.compact => 3,
+          Breakpoint.compact => compactCrossAxisCount,
         };
 
         useEffect(() {

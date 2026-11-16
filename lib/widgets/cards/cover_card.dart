@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
@@ -37,98 +34,76 @@ class CoverCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final effectiveLabel = actionLabel ?? l.read;
+    final effectiveActionLabel =
+        actionLabel ?? AppLocalizations.of(context).read;
 
     return Card.filled(
       clipBehavior: .antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          children: [
-            Expanded(
+      child: Column(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
               child: Stack(
                 children: [
-                  Positioned.fill(
-                    child: coverImage,
-                  ),
-                  if (progress <= 0)
-                    Align(
-                      alignment: .topRight,
-                      child: Transform.translate(
-                        offset: const Offset(20, -20),
-                        child: Transform.rotate(
-                          angle: math.pi / 4,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (onActionTap != null)
-                    Align(
-                      alignment: .bottomCenter,
-                      child: Padding(
-                        padding: LayoutConstants.smallEdgeInsets,
-                        child: actionDisabled
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 10,
-                                    sigmaY: 10,
-                                  ),
-                                  child: FilledButton.icon(
-                                    icon: actionDisabledIcon,
-                                    label: FittedBox(
-                                      child: Text(effectiveLabel),
-                                    ),
-                                    onPressed: null,
-                                  ),
-                                ),
-                              )
-                            : FilledButton.icon(
-                                icon: actionIcon,
-                                label: FittedBox(child: Text(effectiveLabel)),
-                                onPressed: onActionTap,
-                              ),
-                      ),
-                    ),
+                  Positioned.fill(child: coverImage),
                   if (downloadStatusIcon != null)
-                    Align(
-                      alignment: .topLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: downloadStatusIcon,
-                      ),
+                    Positioned(
+                      top: LayoutConstants.smallPadding,
+                      left: LayoutConstants.smallPadding,
+                      child: downloadStatusIcon!,
                     ),
                 ],
               ),
             ),
+          ),
+          if (progress > 0)
             LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
             ),
-            if (title != null)
-              Padding(
-                padding: LayoutConstants.smallEdgeInsets,
-                child: Row(
-                  mainAxisSize: .min,
-                  spacing: LayoutConstants.smallPadding,
-                  children: [
-                    ?icon,
-                    Expanded(
-                      child: Text(
-                        title!,
-                        overflow: TextOverflow.ellipsis,
+          if (title != null || onActionTap != null)
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: onTap,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        LayoutConstants.smallPadding,
+                        LayoutConstants.smallPadding,
+                        LayoutConstants.smallerPadding,
+                        LayoutConstants.smallPadding,
+                      ),
+                      child: Row(
+                        children: [
+                          if (icon != null) ...[
+                            icon!,
+                            const SizedBox(
+                              width: LayoutConstants.smallPadding,
+                            ),
+                          ],
+                          if (title != null)
+                            Expanded(
+                              child: Text(
+                                title!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-          ],
-        ),
+                if (onActionTap != null)
+                  IconButton(
+                    tooltip: effectiveActionLabel,
+                    onPressed: actionDisabled ? null : onActionTap,
+                    icon: actionDisabled ? actionDisabledIcon : actionIcon,
+                  ),
+              ],
+            ),
+        ],
       ),
     );
   }

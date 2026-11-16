@@ -7,12 +7,15 @@ import 'package:kover/models/volume_model.dart';
 import 'package:kover/riverpod/providers/chapter.dart';
 import 'package:kover/riverpod/providers/library.dart';
 import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/riverpod/providers/search.dart';
 import 'package:kover/riverpod/providers/series.dart';
 import 'package:kover/riverpod/providers/volume.dart';
 import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:kover/widgets/cards/cover_image.dart';
 import 'package:kover/widgets/lists/cover_list_entry.dart';
+import 'package:kover/widgets/search/global_search_results.dart';
 import 'package:kover/widgets/util/sliver_bottom_padding.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -67,6 +70,36 @@ class SearchButton extends HookConsumerWidget {
       suggestionsBuilder: (context, controller) async {
         final query = controller.text.trim();
         if (query.isEmpty) return const [];
+
+        try {
+          final (results, volumes) = await (
+            ref.read(
+              globalSearchProvider(
+                query,
+                includeChapterAndFiles: true,
+              ).future,
+            ),
+            ref.read(searchVolumesProvider(query).future),
+          ).wait;
+
+          return [
+            GlobalSearchResults(
+              results: results,
+              volumes: volumes,
+              query: query,
+              controller: controller,
+            ),
+            const ListBottomPadding(),
+          ];
+        } catch (error, stacktrace) {
+          log.debug(
+            'web search failed, falling back to local search: $error',
+            attributes: {
+              'query': query,
+              'stacktrace': stacktrace.toString(),
+            },
+          );
+        }
 
         final l = AppLocalizations.of(context);
         final theme = Theme.of(context);

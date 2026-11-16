@@ -109,6 +109,9 @@ Thanks to the amazing people helping shape this project by providing feedback, r
 
 ### Library Navigation
 
+В настройках нижней панели можно закрепить конкретные библиотеки, например
+«Книги» и «Комиксы», а затем изменить порядок быстрых ссылок перетаскиванием.
+
 <p align="center">
   <img src="screenshots/home.png" alt="Screenshot" width="220" />
   <img src="screenshots/series_details.png" alt="Screenshot" width="220" />
@@ -120,6 +123,9 @@ Thanks to the amazing people helping shape this project by providing feedback, r
 
 ### Reading
 
+В EPUB- и графической читалках доступны быстрые стили «Книга» и «Комикс».
+После выбора стиля все отдельные параметры можно настроить вручную.
+
 <p align="center">
   <img src="screenshots/image_reader.png" alt="Screenshot" width="220" />
   <img src="screenshots/epub_reader.png" alt="Screenshot" width="220" />
@@ -129,6 +135,12 @@ Thanks to the amazing people helping shape this project by providing feedback, r
   <img src="screenshots/image_reader_settings.png" alt="Screenshot" width="220" />
   <img src="screenshots/epub_reader_settings.png" alt="Screenshot" width="220" />
 </p>
+
+### Поиск
+
+Глобальный поиск использует сервер Kavita и показывает те же типы результатов, что и в веб-приложении: книги и серии, коллекции, списки чтения, библиотеки, людей, жанры, теги, главы, файлы, закладки и аннотации. Если серверный поиск недоступен, приложение переходит к локальному поиску.
+
+Раздел «Хочу найти» хранит на сервере метаданные книг, которых ещё нет в библиотеке. Запись можно дополнить обложкой, ISBN, источником и заметками, а после приобретения связать с произведением в библиотеке и при необходимости добавить в «Хочу прочитать».
 
 ### Settings
 

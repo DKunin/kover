@@ -204,11 +204,11 @@ class _Metadata extends ConsumerWidget {
       asyncValue: metadata,
       data: (metadata) => Column(
         crossAxisAlignment: .start,
-        spacing: LayoutConstants.largePadding,
+        spacing: LayoutConstants.mediumPadding,
         children: [
           Wrap(
-            spacing: LayoutConstants.mediumPadding,
-            runSpacing: LayoutConstants.mediumPadding,
+            spacing: LayoutConstants.smallPadding,
+            runSpacing: LayoutConstants.smallPadding,
             children: [
               if ((series.wordCount ?? 0) > 0)
                 WordCount(wordCount: series.wordCount!),
@@ -227,8 +227,8 @@ class _Metadata extends ConsumerWidget {
             ],
           ),
           Wrap(
-            spacing: LayoutConstants.largerPadding,
-            runSpacing: LayoutConstants.mediumPadding,
+            spacing: LayoutConstants.mediumPadding,
+            runSpacing: LayoutConstants.smallPadding,
             children: [
               if (metadata.writers.isNotEmpty)
                 MetadataWriters(metadata: metadata),

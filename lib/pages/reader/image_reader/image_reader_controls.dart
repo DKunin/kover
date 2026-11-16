@@ -14,6 +14,7 @@ import 'package:kover/widgets/settings/reader/navigation_gestures_option.dart';
 import 'package:kover/widgets/settings/reader/orientation_option.dart';
 import 'package:kover/widgets/settings/reader/progress_bar_option.dart';
 import 'package:kover/widgets/settings/reader/read_direction_option.dart';
+import 'package:kover/widgets/settings/reader/reading_style_presets.dart';
 import 'package:kover/widgets/util/async_value.dart';
 
 class ImageReaderSettingsBottomSheet extends ConsumerWidget {
@@ -27,6 +28,7 @@ class ImageReaderSettingsBottomSheet extends ConsumerWidget {
     final imageSettings = imageReaderSettingsProvider(seriesId: seriesId);
     final commonSettings = commonReaderSettingsProvider(seriesId: seriesId);
     final breakpoint = ref.watch(breakpointsProvider);
+    final stylePresets = ref.watch(imageReadingStylePresetsProvider).value;
 
     return Async(
       asyncValue: ref.watch(imageSettings),
@@ -51,6 +53,21 @@ class ImageReaderSettingsBottomSheet extends ConsumerWidget {
                       Text(
                         l.readerSettings,
                         style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      ReadingStylePresets(
+                        selected: stylePresets?.matchingPreset(settings),
+                        bookDescription: l.bookStyleImageDescription,
+                        comicDescription: l.comicStyleImageDescription,
+                        onSelected: (preset) => ref
+                            .read(imageSettings.notifier)
+                            .applyReadingStyle(preset),
+                        onSaved: (preset) => ref
+                            .read(imageSettings.notifier)
+                            .saveReadingStyle(preset),
+                      ),
+                      Text(
+                        l.fineTune,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                       ReadDirectionOption(seriesId: seriesId),
                       ChoiceOption<ReaderMode>(

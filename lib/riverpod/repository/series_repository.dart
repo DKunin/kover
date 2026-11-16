@@ -70,6 +70,8 @@ class const SeriesRepository({
     String query, {
     int? libraryId,
     int? collectionId,
+    List<int> writerIds = const [],
+    List<int> genreIds = const [],
     UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
     bool hideRead = false,
@@ -84,6 +86,8 @@ class const SeriesRepository({
       query,
       libraryId: libraryId,
       collectionId: collectionId,
+      writerIds: writerIds,
+      genreIds: genreIds,
       orderBy: orderBy,
       direction: direction,
       hideRead: hideRead,
@@ -176,6 +180,8 @@ class const SeriesRepository({
   Stream<List<SeriesModel>> watchAllSeries({
     int? libraryId,
     int? collectionId,
+    List<int> writerIds = const [],
+    List<int> genreIds = const [],
     UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
     bool hideRead = false,
@@ -186,6 +192,8 @@ class const SeriesRepository({
         .allSeries(
           libraryId: libraryId,
           collectionId: collectionId,
+          writerIds: writerIds,
+          genreIds: genreIds,
           orderBy: orderBy,
           direction: direction,
           hideRead: hideRead,
@@ -196,6 +204,38 @@ class const SeriesRepository({
         .distinct()
         .map(
           (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
+  }
+
+  Stream<List<PersonModel>> watchSeriesWriters({
+    int? libraryId,
+    int? collectionId,
+  }) {
+    return _db.seriesDao
+        .watchSeriesWriters(
+          libraryId: libraryId,
+          collectionId: collectionId,
+        )
+        .map(
+          (people) => people
+              .map((person) => PersonModel(id: person.id, name: person.name))
+              .toList(),
+        );
+  }
+
+  Stream<List<GenreModel>> watchSeriesGenres({
+    int? libraryId,
+    int? collectionId,
+  }) {
+    return _db.seriesDao
+        .watchSeriesGenres(
+          libraryId: libraryId,
+          collectionId: collectionId,
+        )
+        .map(
+          (genres) => genres
+              .map((genre) => GenreModel(id: genre.id, name: genre.label))
+              .toList(),
         );
   }
 

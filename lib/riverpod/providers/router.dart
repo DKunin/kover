@@ -1,5 +1,6 @@
 import 'package:kover/pages/recently_added_page/recently_added_page.dart';
 import 'package:kover/pages/recently_updated_page/recently_updated_page.dart';
+import 'package:kover/models/series_model.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kover/pages/download_queue/download_queue_page.dart';
@@ -23,6 +24,7 @@ import 'package:kover/pages/series_detail_page/volumes_page/volumes_page.dart';
 import 'package:kover/pages/settings/local_logs/local_logs_page.dart';
 import 'package:kover/pages/settings/settings_page.dart';
 import 'package:kover/pages/want_to_read_page/want_to_read_page.dart';
+import 'package:kover/pages/want_to_find_page/want_to_find_page.dart';
 import 'package:kover/widgets/util/navigator_container.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -130,6 +132,11 @@ GoRouter router(Ref ref) {
         TypedGoRoute<BookmarksRoute>(path: '/bookmarks'),
       ],
     ),
+    TypedStatefulShellBranch<WantToFindBranch>(
+      routes: [
+        TypedGoRoute<WantToFindRoute>(path: '/want-to-find'),
+      ],
+    ),
     TypedStatefulShellBranch<MenuBranch>(
       routes: [
         TypedGoRoute<MenuRoute>(
@@ -159,7 +166,10 @@ class AppShellRoute extends StatefulShellRouteData {
     GoRouterState state,
     StatefulNavigationShell navigationShell,
   ) {
-    return NavigatorContainer(navigationShell: navigationShell);
+    return NavigatorContainer(
+      navigationShell: navigationShell,
+      location: state.uri,
+    );
   }
 }
 
@@ -187,6 +197,10 @@ class BookmarksBranch extends StatefulShellBranchData {
   const BookmarksBranch();
 }
 
+class WantToFindBranch extends StatefulShellBranchData {
+  const WantToFindBranch();
+}
+
 class MenuBranch extends StatefulShellBranchData {
   const MenuBranch();
 }
@@ -206,6 +220,14 @@ class WantToReadRoute extends GoRouteData with $WantToReadRoute {
       const WantToReadPage();
 }
 
+class WantToFindRoute extends GoRouteData with $WantToFindRoute {
+  const WantToFindRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const WantToFindPage();
+}
+
 class MenuRoute extends GoRouteData with $MenuRoute {
   const MenuRoute();
 
@@ -214,11 +236,30 @@ class MenuRoute extends GoRouteData with $MenuRoute {
 }
 
 class AllSeriesRoute extends GoRouteData with $AllSeriesRoute {
-  const AllSeriesRoute();
+  final String? query;
+  final int? writerId;
+  final String? writerName;
+  final int? genreId;
+  final String? genreName;
+
+  const AllSeriesRoute({
+    this.query,
+    this.writerId,
+    this.writerName,
+    this.genreId,
+    this.genreName,
+  });
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const AllSeriesPage();
+  Widget build(BuildContext context, GoRouterState state) => AllSeriesPage(
+    initialQuery: query ?? '',
+    initialWriter: writerId == null || writerName == null
+        ? null
+        : PersonModel(id: writerId!, name: writerName!),
+    initialGenre: genreId == null || genreName == null
+        ? null
+        : GenreModel(id: genreId!, name: genreName!),
+  );
 }
 
 class BookmarksRoute extends GoRouteData with $BookmarksRoute {

@@ -34,9 +34,12 @@ class ReaderHeader extends ConsumerWidget {
 
     return SafeArea(
       child: Card.filled(
-        margin: LayoutConstants.mediumEdgeInsets,
+        margin: const EdgeInsets.all(LayoutConstants.smallPadding),
         child: Padding(
-          padding: LayoutConstants.mediumEdgeInsets,
+          padding: const EdgeInsets.symmetric(
+            horizontal: LayoutConstants.smallerPadding,
+            vertical: LayoutConstants.smallerPadding,
+          ),
           child: Async(
             asyncValue: model,
             data: (data) => Row(
@@ -50,31 +53,12 @@ class ReaderHeader extends ConsumerWidget {
                   onPressed: () => context.pop(),
                 ),
                 Expanded(
-                  child: Column(
-                    mainAxisSize: .min,
-                    children: [
-                      Text(
-                        data.reader.chapter.title,
-                        textAlign: .center,
-                        overflow: .ellipsis,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium,
-                      ),
-                      Text(
-                        data.reader.series.name,
-                        textAlign: .center,
-                        overflow: .ellipsis,
-                        style:
-                            Theme.of(
-                              context,
-                            ).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
+                  child: Text(
+                    '${data.reader.series.name} · ${data.reader.chapter.title}',
+                    maxLines: 1,
+                    textAlign: .center,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 if (hasDrawer || data.reader.series.format == .epub)

@@ -10,6 +10,7 @@ class SeriesListPage extends StatelessWidget {
   final TextEditingController controller;
   final AsyncValue<List<SeriesModel>> series;
   final Widget? sortMenu;
+  final Widget? filterControls;
 
   /// Hides the read action button on the grid cards.
   final bool hideAction;
@@ -26,6 +27,7 @@ class SeriesListPage extends StatelessWidget {
     required this.controller,
     required this.series,
     this.sortMenu,
+    this.filterControls,
     this.hideAction = false,
     this.onSeriesTap,
     this.onViewDetails,
@@ -38,6 +40,8 @@ class SeriesListPage extends StatelessWidget {
       filterController: controller,
       items: series,
       sortMenu: sortMenu,
+      filterControls: filterControls,
+      compactGridCrossAxisCount: 2,
       gridBuilder: (context, series) => SeriesCard(
         key: ValueKey(series.id),
         seriesId: series.id,

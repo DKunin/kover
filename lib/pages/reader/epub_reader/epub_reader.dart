@@ -7,6 +7,7 @@ import 'package:kover/pages/reader/epub_reader/epub_reader_provider.dart';
 import 'package:kover/pages/reader/epub_reader/epub_theme_override.dart';
 import 'package:kover/pages/reader/epub_reader/epub_toc_drawer.dart';
 import 'package:kover/pages/reader/epub_reader/epub_vertical_subpages.dart';
+import 'package:kover/pages/reader/epub_reader/zoomable_epub_page.dart';
 import 'package:kover/pages/reader/overlay/reader_overlay.dart';
 import 'package:kover/riverpod/providers/reader/epub_reader.dart';
 import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
@@ -257,6 +258,8 @@ class _Page extends HookConsumerWidget {
       [],
     );
     final lastViewport = useRef<(Size, double)?>(null);
+    final zoomed = useState(false);
+    final multiTouch = useState(false);
     final vertical = mode == .vertical;
     final spreads = mode == .spreads;
 
@@ -286,6 +289,7 @@ class _Page extends HookConsumerWidget {
             final isAdjacentPage = (data.navigation.page - page).abs() <= 1;
             final shouldStart =
                 isVisiblePage || (visibleReady && isAdjacentPage);
+            final interactionLocked = zoomed.value || multiTouch.value;
 
             final viewport = spreads
                 ? Size(
@@ -328,33 +332,40 @@ class _Page extends HookConsumerWidget {
               });
             }
 
-            return SelectionArea(
-              onSelectionChanged: (selection) {
-                onSelectionChanged?.call(
-                  selection != null && selection.plainText.isNotEmpty,
-                );
-              },
-              child: NotificationListener<ScrollNotification>(
-                onNotification: data.navigationGesturesEnabled
-                    ? handleScrollNotification
-                    : null,
-                child: vertical
-                    ? EpubVerticalSubpages(
-                        key: ValueKey(page),
-                        seriesId: seriesId,
-                        chapterId: chapterId,
-                        readingListId: readingListId,
-                        page: page,
-                        imageCache: imageCache,
-                      )
-                    : EpubHorizontalSubpages(
-                        key: ValueKey(page),
-                        seriesId: seriesId,
-                        chapterId: chapterId,
-                        readingListId: readingListId,
-                        page: page,
-                        imageCache: imageCache,
-                      ),
+            return ZoomableEpubPage(
+              resetKey: (page, data.navigation.subpage),
+              onZoomChanged: (value) => zoomed.value = value,
+              onMultiTouchChanged: (value) => multiTouch.value = value,
+              child: SelectionArea(
+                onSelectionChanged: (selection) {
+                  onSelectionChanged?.call(
+                    selection != null && selection.plainText.isNotEmpty,
+                  );
+                },
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: data.navigationGesturesEnabled
+                      ? handleScrollNotification
+                      : null,
+                  child: vertical
+                      ? EpubVerticalSubpages(
+                          key: ValueKey(page),
+                          seriesId: seriesId,
+                          chapterId: chapterId,
+                          readingListId: readingListId,
+                          page: page,
+                          imageCache: imageCache,
+                          interactionLocked: interactionLocked,
+                        )
+                      : EpubHorizontalSubpages(
+                          key: ValueKey(page),
+                          seriesId: seriesId,
+                          chapterId: chapterId,
+                          readingListId: readingListId,
+                          page: page,
+                          imageCache: imageCache,
+                          interactionLocked: interactionLocked,
+                        ),
+                ),
               ),
             );
           },

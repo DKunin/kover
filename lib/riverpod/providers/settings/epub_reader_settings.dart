@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/models/reading_style_preset.dart';
 import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/utils/logging.dart';
@@ -70,6 +71,67 @@ sealed class EpubReaderSettingsState with _$EpubReaderSettingsState {
       _$EpubReaderSettingsStateFromJson(json);
 }
 
+extension EpubReaderSettingsPresets on EpubReaderSettingsState {
+  EpubReaderSettingsState applyPreset(ReadingStylePreset preset) {
+    return switch (preset) {
+      .book => copyWith(
+        horizontalMarginSize: LayoutConstants.mediumPadding,
+        verticalMarginSize: LayoutConstants.mediumPadding,
+        fontSize: 16,
+        paragraphSpacing: 0,
+        lineHeight: 1.6,
+        wordSpacing: 0,
+        letterSpacing: 0,
+        highlightResumePoint: true,
+        theme: .sepia,
+        mode: .horizontal,
+        removeParagraphIndent: false,
+        textAlignment: .left,
+        ignoreSafeAreas: false,
+      ),
+      .comic => copyWith(
+        horizontalMarginSize: LayoutConstants.smallerPadding,
+        verticalMarginSize: LayoutConstants.smallerPadding,
+        highlightResumePoint: false,
+        theme: .black,
+        mode: .vertical,
+        ignoreSafeAreas: true,
+      ),
+    };
+  }
+}
+
+@freezed
+sealed class EpubReadingStylePresetsState with _$EpubReadingStylePresetsState {
+  const EpubReadingStylePresetsState._();
+
+  const factory EpubReadingStylePresetsState({
+    required EpubReaderSettingsState book,
+    required EpubReaderSettingsState comic,
+  }) = _EpubReadingStylePresetsState;
+
+  factory EpubReadingStylePresetsState.defaults() =>
+      EpubReadingStylePresetsState(
+        book: const EpubReaderSettingsState().applyPreset(.book),
+        comic: const EpubReaderSettingsState().applyPreset(.comic),
+      );
+
+  factory EpubReadingStylePresetsState.fromJson(Map<String, Object?> json) =>
+      _$EpubReadingStylePresetsStateFromJson(json);
+
+  EpubReaderSettingsState style(ReadingStylePreset preset) => switch (preset) {
+    .book => book,
+    .comic => comic,
+  };
+
+  ReadingStylePreset? matchingPreset(EpubReaderSettingsState settings) {
+    for (final preset in ReadingStylePreset.values) {
+      if (settings == style(preset)) return preset;
+    }
+    return null;
+  }
+}
+
 extension on EpubReaderSettingsState {
   EpubReaderSettingsState clampLimits() {
     return copyWith(
@@ -124,6 +186,32 @@ class DefaultEpubReaderSettings extends _$DefaultEpubReaderSettings {
 
 @riverpod
 @JsonPersist()
+class EpubReadingStylePresets extends _$EpubReadingStylePresets {
+  @override
+  Future<EpubReadingStylePresetsState> build() async {
+    await persist(
+      ref.watch(storageProvider.future),
+      options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
+    ).future;
+    return state.value ?? EpubReadingStylePresetsState.defaults();
+  }
+
+  Future<void> save(
+    ReadingStylePreset preset,
+    EpubReaderSettingsState settings,
+  ) async {
+    final current = await future;
+    state = AsyncData(
+      switch (preset) {
+        .book => current.copyWith(book: settings),
+        .comic => current.copyWith(comic: settings),
+      },
+    );
+  }
+}
+
+@riverpod
+@JsonPersist()
 class EpubReaderSettings extends _$EpubReaderSettings {
   @override
   Future<EpubReaderSettingsState> build({required int seriesId}) async {
@@ -150,6 +238,26 @@ class EpubReaderSettings extends _$EpubReaderSettings {
     log.info(
       'set font size',
       attributes: {'value': newSize, 'reader': 'epub'},
+    );
+  }
+
+  Future<void> applyReadingStyle(ReadingStylePreset preset) async {
+    final presets = await ref.read(epubReadingStylePresetsProvider.future);
+    state = AsyncData(presets.style(preset));
+    log.info(
+      'apply reading style preset',
+      attributes: {'value': preset.name, 'reader': 'epub'},
+    );
+  }
+
+  Future<void> saveReadingStyle(ReadingStylePreset preset) async {
+    final current = await future;
+    await ref
+        .read(epubReadingStylePresetsProvider.notifier)
+        .save(preset, current);
+    log.info(
+      'save reading style preset',
+      attributes: {'value': preset.name, 'reader': 'epub'},
     );
   }
 

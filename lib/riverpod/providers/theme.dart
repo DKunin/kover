@@ -18,8 +18,35 @@ final _theme = MaterialTheme(
   Typography.material2021().black,
 );
 
-final _lightBase = _theme.light();
-final _darkBase = _theme.dark();
+final _lightBase = _theme.light().copyWith(
+  colorScheme: _theme.light().colorScheme.copyWith(
+    primary: const Color(0xff006b5f),
+    primaryContainer: const Color(0xffb8eee3),
+    onPrimaryContainer: const Color(0xff00372f),
+    surface: const Color(0xfff8f6f1),
+    surfaceContainerLowest: const Color(0xfff8f6f1),
+    surfaceContainerLow: const Color(0xfff2f0eb),
+    surfaceContainer: const Color(0xffeceae5),
+    surfaceContainerHigh: const Color(0xffe6e4df),
+  ),
+  scaffoldBackgroundColor: const Color(0xfff8f6f1),
+);
+final _darkBase = _theme.dark().copyWith(
+  colorScheme: _theme.dark().colorScheme.copyWith(
+    primary: const Color(0xff83d8c7),
+    primaryContainer: const Color(0xff205f56),
+    onPrimaryContainer: const Color(0xffd8fff5),
+    surface: const Color(0xff101412),
+    surfaceDim: const Color(0xff101412),
+    surfaceBright: const Color(0xff353a37),
+    surfaceContainerLowest: const Color(0xff0b0f0d),
+    surfaceContainerLow: const Color(0xff181c1a),
+    surfaceContainer: const Color(0xff1d211f),
+    surfaceContainerHigh: const Color(0xff272c29),
+    surfaceContainerHighest: const Color(0xff323734),
+  ),
+  scaffoldBackgroundColor: const Color(0xff101412),
+);
 
 final _lightBorderSide = BorderSide(
   color: _lightBase.colorScheme.outline,
@@ -31,7 +58,13 @@ final _darkBorderSide = BorderSide(
   width: 2.0,
 );
 
-final _cardTheme = const CardThemeData(elevation: 0);
+final _cardTheme = CardThemeData(
+  elevation: 0,
+  margin: EdgeInsets.zero,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(LayoutConstants.mediumBorderRadius),
+  ),
+);
 final _outlinedLightCardTheme = _cardTheme.copyWith(
   shape: RoundedRectangleBorder(
     side: _lightBorderSide,
@@ -50,9 +83,13 @@ final _progressIndicatorTheme = const ProgressIndicatorThemeData(
   strokeCap: .round,
 );
 
-final _navigationBarTheme = const NavigationBarThemeData(
-  height: 64.0,
-  labelBehavior: .alwaysHide,
+final _navigationBarTheme = NavigationBarThemeData(
+  height: 72.0,
+  elevation: 0,
+  labelBehavior: .alwaysShow,
+  indicatorShape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(LayoutConstants.mediumBorderRadius),
+  ),
 );
 
 final _segmentedButtonTheme = SegmentedButtonThemeData(
@@ -66,10 +103,14 @@ final _segmentedButtonTheme = SegmentedButtonThemeData(
 );
 
 final _inputDecorationTheme = const InputDecorationTheme(
+  filled: true,
   border: OutlineInputBorder(
-    borderRadius: BorderRadius.all(
-      Radius.circular(LayoutConstants.smallerBorderRadius),
-    ),
+    borderRadius: BorderRadius.all(Radius.circular(16)),
+    borderSide: BorderSide.none,
+  ),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(16)),
+    borderSide: BorderSide.none,
   ),
   isDense: true,
 );

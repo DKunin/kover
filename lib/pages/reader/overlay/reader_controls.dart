@@ -41,9 +41,11 @@ class ReaderControls extends HookConsumerWidget {
 
     return SafeArea(
       child: Card.filled(
-        margin: LayoutConstants.mediumEdgeInsets,
+        margin: const EdgeInsets.all(LayoutConstants.smallPadding),
         child: Padding(
-          padding: LayoutConstants.smallEdgeInsets,
+          padding: const EdgeInsets.symmetric(
+            horizontal: LayoutConstants.smallerPadding,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: .end,

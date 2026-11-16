@@ -15,6 +15,7 @@ class const EpubVerticalSubpages({
   required final int? readingListId,
   required final int page,
   required final CachedImageFactory imageCache,
+  final bool interactionLocked = false,
 }) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,9 +116,11 @@ class const EpubVerticalSubpages({
           child: CustomScrollView(
             controller: scrollController,
             scrollCacheExtent: const .viewport(4),
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: ClampingScrollPhysics(),
-            ),
+            physics: interactionLocked
+                ? const NeverScrollableScrollPhysics()
+                : const AlwaysScrollableScrollPhysics(
+                    parent: ClampingScrollPhysics(),
+                  ),
             slivers: [
               SliverSafeArea(
                 bottom: true,

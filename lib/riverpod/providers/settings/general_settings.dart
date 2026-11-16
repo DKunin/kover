@@ -1,7 +1,9 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/models/enums/library_type.dart';
 import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:kover/utils/locale_tag.dart';
 import 'package:kover/utils/logging.dart';
@@ -17,12 +19,62 @@ enum NavbarDestinations {
   wantToRead(2),
   collections(3),
   readingLists(4),
-  bookmarks(5);
+  bookmarks(5),
+  wantToFind(6);
 
   const NavbarDestinations(this.value);
 
   final int value;
 }
+
+@freezed
+sealed class NavbarItem with _$NavbarItem {
+  const NavbarItem._();
+
+  const factory NavbarItem.destination({
+    required NavbarDestinations destination,
+  }) = NavbarDestinationItem;
+
+  const factory NavbarItem.library({
+    required int libraryId,
+    required String name,
+    required LibraryType type,
+  }) = NavbarLibraryItem;
+
+  factory NavbarItem.fromJson(Map<String, dynamic> json) =>
+      _$NavbarItemFromJson(json);
+}
+
+class NavbarItemConverter implements JsonConverter<NavbarItem, Object?> {
+  const NavbarItemConverter();
+
+  @override
+  NavbarItem fromJson(Object? json) {
+    if (json is String) {
+      final destination = NavbarDestinations.values.firstWhere(
+        (candidate) => candidate.name == json,
+      );
+      return NavbarItem.destination(destination: destination);
+    }
+    if (json is Map) {
+      return NavbarItem.fromJson(Map<String, dynamic>.from(json));
+    }
+    throw FormatException('Unsupported navigation item: $json');
+  }
+
+  @override
+  Object toJson(NavbarItem object) => object.toJson();
+}
+
+const _legacyNavbarDestinations = <NavbarItem>[
+  NavbarItem.destination(destination: .home),
+  NavbarItem.destination(destination: .wantToRead),
+];
+const _readingFirstNavbarDestinations = <NavbarItem>[
+  NavbarItem.destination(destination: .home),
+  NavbarItem.destination(destination: .allSeries),
+  NavbarItem.destination(destination: .wantToRead),
+];
 
 @freezed
 sealed class GeneralSettingsState with _$GeneralSettingsState {
@@ -32,8 +84,9 @@ sealed class GeneralSettingsState with _$GeneralSettingsState {
     @Default(false) bool sendDiagnostics,
     @Default(null) String? localeString,
     @Default(null) TextDirection? textDirection,
-    @Default(<NavbarDestinations>[.home, .wantToRead])
-    List<NavbarDestinations> navbarDestinations,
+    @NavbarItemConverter()
+    @Default(_readingFirstNavbarDestinations)
+    List<NavbarItem> navbarDestinations,
   }) = _GeneralSettingsState;
 
   factory GeneralSettingsState.fromJson(Map<String, Object?> json) =>
@@ -63,7 +116,19 @@ class GeneralSettings extends _$GeneralSettings {
       options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
     ).future;
 
-    return state.value ?? const GeneralSettingsState();
+    final restored = state.value ?? const GeneralSettingsState();
+    if (listEquals(
+      restored.navbarDestinations,
+      _legacyNavbarDestinations,
+    )) {
+      final migrated = restored.copyWith(
+        navbarDestinations: _readingFirstNavbarDestinations,
+      );
+      state = AsyncData(migrated);
+      return migrated;
+    }
+
+    return restored;
   }
 
   Future<void> setSendDiagnostics(bool value) async {
@@ -90,11 +155,18 @@ class GeneralSettings extends _$GeneralSettings {
     state = AsyncData(current.copyWith(textDirection: value));
   }
 
-  Future<void> setNavbarDestinations(List<NavbarDestinations> value) async {
+  Future<void> setNavbarDestinations(List<NavbarItem> value) async {
     final current = await future;
     log.info(
       'set navbar destinations',
-      attributes: {'value': value.map((e) => e.name)},
+      attributes: {
+        'value': value.map(
+          (item) => switch (item) {
+            NavbarDestinationItem(:final destination) => destination.name,
+            NavbarLibraryItem(:final libraryId) => 'library:$libraryId',
+          },
+        ),
+      },
     );
     state = AsyncData(current.copyWith(navbarDestinations: value));
   }
@@ -104,7 +176,7 @@ class GeneralSettings extends _$GeneralSettings {
     log.info('reset navbar destinations');
     state = AsyncData(
       current.copyWith(
-        navbarDestinations: const <NavbarDestinations>[.home, .wantToRead],
+        navbarDestinations: _readingFirstNavbarDestinations,
       ),
     );
   }
